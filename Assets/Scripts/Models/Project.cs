@@ -1,0 +1,159 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class Project
+{
+    public string Name;
+    public string Description;
+    public float Difficulty;
+    public float Duration;
+    public float Progress;
+    public List<Task> Tasks = new();
+    public int StartingTasks;
+    public string Status;
+    public int Id;
+    public float LowestPriority;
+    public float StartDuration;
+    public float Pay;
+
+    public float WindowX, WindowY, WindowW, WindowH;
+    public Texture2D Icon;
+
+    public Game Game;
+
+    public Project(Game game, string name, string description, float difficulty, float duration, float? pay = null)
+    {
+        this.Game = game;
+        Id = UnityEngine.Random.Range(1, 10000);
+        Name = name;
+        Description = description;
+        Difficulty = difficulty;
+        Duration = duration;
+        StartDuration = duration;
+        Pay = pay ?? difficulty * 1000;
+        Status = "pending";
+        Icon = game.iconManager.GetIcon(32).SheetTexture;
+        CreateTasks();
+        game.textPop.New("New project!", GetWindowCenter(), new Color(0.5f, 0.5f, 0.0f));
+    }
+
+    private void CreateTasks()
+    {
+        List<Task> allTasks = TaskLibrary.GetMainTasks().ToList();
+        foreach (var def in allTasks)
+        {
+            if (UnityEngine.Random.value * Difficulty > 0.8f)
+            {
+                var task = new Task(def.Name, def.Description, def.Difficulty, def.Specialty, def.TimeToComplete, this, "pending", Tasks.Count + 1);
+                AddTask(task);
+            }
+        }
+    }
+
+    public void AddTask(Task task)
+    {
+        Tasks.Add(task);
+        StartingTasks++;
+        TasksChanged();
+        Game.OnNewTask?.Invoke(task);
+    }
+
+    public void RemoveTask(Task task)
+    {
+        Tasks.Remove(task);
+        TasksChanged();
+    }
+
+    public void TasksChanged()
+    {
+        float minPriority = float.MaxValue;
+        foreach (var task in Tasks)
+        {
+            if (task.Status != "completed" && task.Priority < minPriority)
+            {
+                minPriority = task.Priority;
+                task.CanStart = true;
+            }
+            else
+            {
+                task.CanStart = false;
+            }
+        }
+        LowestPriority = minPriority;
+    }
+
+    public void CompleteTask(Task task)
+    {
+        Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
+
+        foreach (var worker in Game.Workers)
+        {
+            worker.Stress -= task.Difficulty / task.Workers.Count;
+            worker.Stress = Mathf.Max(0, worker.Stress);
+        }
+
+        if (task.Status == "completed")
+        {
+            Progress += (task.Difficulty / Tasks.Count) * 100f;
+        }
+
+        TasksChanged();
+    }
+
+    public void FailProject()
+    {
+        Status = "failed";
+        Game.textPop.New("Project failed...", GetWindowCenter(), Color.red);
+
+        foreach (var task in Tasks)
+        {
+            task.Status = "failed";
+            Game.textPop.New("Task failed!", task.GetWindowCenter(), Color.red);
+
+            foreach (var worker in task.Workers)
+            {
+                worker.RemoveFromTask();
+            }
+        }
+
+        foreach (var worker in Game.Workers)
+        {
+            worker.IncreaseStress(50);
+        }
+    }
+
+    public void Update()
+    {
+        float deltaTime = Time.deltaTime;
+        if (Status != "completed" && Status != "failed" && Status != "paid out")
+        {
+            Duration -= deltaTime;
+            if (Duration <= 0)
+                FailProject();
+        }
+
+        if (Status == "pending")
+            Status = "in progress";
+
+        float totalProgress = 0f;
+        foreach (var task in Tasks)
+        {
+            totalProgress += task.Progress;
+        }
+
+        Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f;
+
+        if (Progress >= 100f && Status != "completed" && Status != "paid out")
+        {
+            Status = "completed";
+            Game.CompleteProject(this);
+        }
+    }
+
+    public Vector2 GetWindowCenter()
+    {
+        return new Vector2(WindowX + WindowW / 2f, WindowY + WindowH / 2f);
+    }
+}
