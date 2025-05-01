@@ -19,6 +19,11 @@ public class Task
 
     public float WindowX, WindowY, WindowW, WindowH;
 
+    public System.Action<float> OnProgressChanged;
+    public System.Action<string> OnStatusChanged;
+    public System.Action<List<Worker>> OnWorkersChanged;
+    public System.Action<Task> OnCompleted;
+
     public Task(string name, string description, float difficulty, Specialty specialty, float timeToComplete, Project project, string status, int priority)
     {
         Id = Random.Range(1, 10000);
@@ -39,7 +44,48 @@ public class Task
         return new Vector2(WindowX + WindowW / 2f, WindowY + WindowH / 2f);
     }
 
-    public void Update()
+    
+    private void SetStatus(string status)
+    {
+        Status = status.ToLower();
+        OnStatusChanged?.Invoke(status);
+    }
+
+    public void AssignWorker(Worker worker)
+    {
+        if (!Workers.Contains(worker))
+        {
+            Workers.Add(worker);
+            worker.AssignTask(this);
+        }
+        OnWorkersChanged?.Invoke(Workers);
+    }
+
+    public void RemoveWorker(Worker worker)
+    {
+        if (Workers.Contains(worker))
+        {
+            Workers.Remove(worker);
+            worker.RemoveFromTask();
+        }
+        OnWorkersChanged?.Invoke(Workers);
+    }
+
+    public void Complete()
+    {
+        SetStatus("completed");
+        Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
+
+        for (int i = Workers.Count - 1; i >= 0; i--)
+        {
+            var worker = Workers[i];
+            worker.TaskCompleted(this);
+            RemoveWorker(worker);
+        }
+        OnCompleted?.Invoke(this);
+        Project.CompleteTask(this);
+    }
+    public void UpdateTask()
     {
         float deltaTime = Time.deltaTime;
         if (Status == "completed" || Status == "failed") return;
@@ -57,42 +103,9 @@ public class Task
         }
 
         if (Status == "pending" && Workers.Count > 0)
-            Status = "in progress";
+            SetStatus("in progress");
 
         if (Progress >= 100f && Status != "completed")
             Complete();
-    }
-
-    public void AssignWorker(Worker worker)
-    {
-        if (!Workers.Contains(worker))
-        {
-            Workers.Add(worker);
-            worker.AssignTask(this);
-        }
-    }
-
-    public void RemoveWorker(Worker worker)
-    {
-        if (Workers.Contains(worker))
-        {
-            Workers.Remove(worker);
-            worker.RemoveFromTask();
-        }
-    }
-
-    public void Complete()
-    {
-        Status = "completed";
-        Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
-
-        for (int i = Workers.Count - 1; i >= 0; i--)
-        {
-            var worker = Workers[i];
-            worker.TaskCompleted(this);
-            RemoveWorker(worker);
-        }
-
-        Project.CompleteTask(this);
     }
 }

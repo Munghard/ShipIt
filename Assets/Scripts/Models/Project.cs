@@ -23,6 +23,13 @@ public class Project
 
     public Game Game;
 
+    public System.Action<float> OnProgressChanged;
+    public System.Action<float> OnDurationChanged;
+    public System.Action<List<Task>> OnTasksChanged;
+    public System.Action<string> OnStatusChanged;
+    public System.Action<Project> OnCompleted;
+    public System.Action<Project> OnFailed;
+
     public Project(Game game, string name, string description, float difficulty, float duration, float? pay = null)
     {
         this.Game = game;
@@ -38,7 +45,11 @@ public class Project
         CreateTasks();
         game.textPop.New("New project!", GetWindowCenter(), new Color(0.5f, 0.5f, 0.0f));
     }
-
+    private void SetStatus(string status)
+    {
+        Status = status.ToLower();
+        OnStatusChanged?.Invoke(status);
+    }
     private void CreateTasks()
     {
         List<Task> allTasks = TaskLibrary.GetMainTasks().ToList();
@@ -58,12 +69,14 @@ public class Project
         StartingTasks++;
         TasksChanged();
         Game.OnNewTask?.Invoke(task);
+        OnTasksChanged?.Invoke(Tasks);
     }
 
     public void RemoveTask(Task task)
     {
         Tasks.Remove(task);
         TasksChanged();
+        OnTasksChanged?.Invoke(Tasks);
     }
 
     public void TasksChanged()
@@ -100,6 +113,7 @@ public class Project
         }
 
         TasksChanged();
+        OnTasksChanged?.Invoke(Tasks);
     }
 
     public void FailProject()
@@ -122,20 +136,31 @@ public class Project
         {
             worker.IncreaseStress(50);
         }
+        OnFailed?.Invoke(this);
     }
-
-    public void Update()
+    public void CompleteProject()
     {
-        float deltaTime = Time.deltaTime;
+        SetStatus("completed");
+        Game.textPop.New("Project completed!", GetWindowCenter(), Color.green);
+
+        foreach (var worker in Game.Workers)
+        {
+            worker.DecreaseStress(50);
+        }
+        OnCompleted?.Invoke(this);
+    }
+    public void UpdateProject()
+    {
         if (Status != "completed" && Status != "failed" && Status != "paid out")
         {
-            Duration -= deltaTime;
+            Duration -= Time.deltaTime;
+            OnDurationChanged?.Invoke(Duration);
             if (Duration <= 0)
                 FailProject();
         }
 
         if (Status == "pending")
-            Status = "in progress";
+            SetStatus("in progress");
 
         float totalProgress = 0f;
         foreach (var task in Tasks)
@@ -144,10 +169,11 @@ public class Project
         }
 
         Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f;
+        OnProgressChanged?.Invoke(Progress);
 
         if (Progress >= 100f && Status != "completed" && Status != "paid out")
         {
-            Status = "completed";
+            SetStatus("completed");
             Game.CompleteProject(this);
         }
     }

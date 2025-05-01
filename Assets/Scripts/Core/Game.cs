@@ -19,6 +19,12 @@ public class Game
     public System.Action<Project> OnNewProject;
     public System.Action<Task> OnNewTask;
     public System.Action<Worker> OnNewWorker;
+    public System.Action<float> OnMoneyChanged;
+
+    public System.Action<float> OnTimeScaleChanged;
+
+    public System.Action<List<Project>> OnAvailableProjectsChanged;
+    public System.Action<List<Worker>> OnAvailableWorkersChanged;
 
     public Game()
     {
@@ -48,6 +54,7 @@ public class Game
             var project = new Project(this, "ProjectName_placeholder", "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
         }
+        OnAvailableProjectsChanged?.Invoke(AvailableProjects);
     }
 
     public void RollWorkersForHire(int num)
@@ -72,11 +79,22 @@ public class Game
 
             WorkersForHire.Add(newWorker);
         }
+        OnAvailableWorkersChanged?.Invoke(WorkersForHire);
     }
-
+    public void RemoveWorkerFromHirePool(Worker worker)
+    {
+        WorkersForHire.Remove(worker);
+        OnAvailableWorkersChanged?.Invoke(WorkersForHire);
+    }
+    public void RemoveProjectFromAvailableProjects(Project project)
+    {
+        AvailableProjects.Remove(project);
+        OnAvailableProjectsChanged?.Invoke(AvailableProjects);
+    }
     public void SetTimeScale(float scale)
     {
         TimeScale = Mathf.Clamp(scale, 0.125f, 16f);
+        OnTimeScaleChanged?.Invoke(TimeScale);
     }
 
     public void TogglePaused()
@@ -116,7 +134,7 @@ public class Game
         OnNewWorker?.Invoke(worker);
     }
 
-    public void Update()
+    public void UpdateGame()
     {
         float dt = Time.deltaTime;
         
@@ -126,17 +144,13 @@ public class Game
 
         foreach (var project in Projects)
         {
-            project.Update();
+            project.UpdateProject();
             foreach (var task in project.Tasks)
-                task.Update();
+                task.UpdateTask();
         }
 
         foreach (var worker in Workers)
-            worker.Update();
+            worker.UpdateWorker();
     }
 
-    public void Draw()
-    {
-        // Placeholder: integrate with UI later
-    }
 }

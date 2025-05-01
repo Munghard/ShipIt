@@ -4,8 +4,6 @@ using UnityEngine.UIElements;
 
 public class WindowUI : VisualElement
 {
-    private Vector2 dragOffset;  // Offset between mouse position and element position
-    private bool isDragging = false;
 
     public WindowUI(string header, List<VisualElement> elements)
     {
@@ -46,7 +44,6 @@ public class WindowUI : VisualElement
         }
 
         Draggable.MakeDraggable(this);
-        //Debug.Log("Draggable: "+draggable);
     }
 
 }

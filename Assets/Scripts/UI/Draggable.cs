@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using UnityEditor.PackageManager.UI;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 public static class Draggable
@@ -19,9 +21,28 @@ public static class Draggable
                 if (pointerEvt.button == 0 && element.parent != null)
                 {
                     var parent = element.parent;
+                    
+                    // Reset header color for all siblings
+                    foreach (var child in parent.Children())
+                    {
+                        var header = child.Q<VisualElement>("header");
+                        if (header != null)
+                            header.RemoveFromClassList("header-active");
+                            header.AddToClassList("header-default");
+                    }
+                    // Reset header color for all siblings
 
                     parent.Remove(element);
                     parent.Add(element);
+
+                    // Highlight this window's header
+                    
+                    var thisHeader = element.Q<VisualElement>("header");
+                    if (thisHeader != null)
+                        thisHeader.RemoveFromClassList("header-default");
+                        thisHeader.AddToClassList("header-active");
+
+                    // Highlight this window's header
 
                     Vector2 mouseInParent = parent.WorldToLocal(pointerEvt.position);
                     Vector2 elementTopLeft = element.layout.position;

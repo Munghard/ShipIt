@@ -67,24 +67,18 @@
     <Compile Include="Assets\Scripts\Models\Task.cs" />
     <Compile Include="Assets\Scripts\Models\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
-    <Compile Include="Assets\Scripts\Models\Wrappers\WorkerWrapper.cs" />
     <Compile Include="Assets\Scripts\UI\Draggable.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
     <Compile Include="Assets\Scripts\Models\Worker.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
     <Compile Include="Assets\Scripts\Utils\PortraitData.cs" />
-    <Compile Include="Assets\Scripts\Models\Wrappers\TaskWrapper.cs" />
-    <Compile Include="Assets\Scripts\Models\Wrappers\ProjectWrapper.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\UI\MainUI.uxml" />
-    <None Include="Assets\Scripts\UI\TaskUI.uxml" />
-    <None Include="Assets\Scripts\UI\WorkerUI.uxml" />
     <None Include="Assets\Scripts\UI\general.uss" />
     <None Include="Assets\Resources\UI\WindowUI.uxml" />
-    <None Include="Assets\Scripts\UI\ProjectUI.uxml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

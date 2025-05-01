@@ -5,6 +5,7 @@
     --background: #363A4A; /* Darker, smoother background for better contrast */
     --window: #B8A98D; /* Lighter, warmer beige for window for more pleasant look */
     --header: #6A5C47; /* Softer, more natural earthy brown for the header */
+    --header-active: #90754E; /* Softer, more natural earthy brown for the header */
     --text: #FFFFFF; /* Keep white text for contrast on dark background */
     --btntext: #F0F0F0; /* Lighter button text for better contrast on dark buttons */
     --border: #8C7F4B; /* More defined border color for better clarity */
@@ -28,6 +29,7 @@ Button:hover {
 }
 
 DropdownField{
+    flex-direction: column;
     background-color: var(--primary);
     width: 200px;
     height: 50px;
@@ -36,14 +38,12 @@ DropdownField{
     border-radius: 5px;
     border-color: var(--secondary);
     border-width: 4px;
-
     margin: 10px;
 }
 
 Label{
     font-size: 20px;
     color: var(--text);
-    text-align: center;
     margin: 10px;
 }
 
@@ -66,10 +66,7 @@ Label{
 .Title{
     font-size: 60px;
     color: var(--primary);
-    text-align: center;
-    text-decoration: underline;
-    font-weight: bold;
-
+    -unity-text-align: middle-center;
 }
 
 .vertical-container {
@@ -89,7 +86,7 @@ Label{
     transition: all 0.3s ease; /* Transition all properties over 0.3 seconds with an ease timing function */
 }
 #header{
-    background-color: var(--header);
+    /* background-color: var(--header); */
     border-width: 0 0 4px 0;
     border-color: var(--border);
     display:flex;
@@ -98,6 +95,7 @@ Label{
 #lblHeader{
     font-size: 30px;
     color:var(--text);
+    -unity-text-align: middle-center;
 }
 #content{
     padding: 20px;
@@ -111,4 +109,13 @@ Label{
     margin: 20px;
     flex-direction: column;
     border-radius:8px;
+}
+
+
+.header-default {
+    background-color:var(--header);
+}
+
+.header-active {
+    background-color:var(--header-active);
 }

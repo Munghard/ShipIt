@@ -25,6 +25,16 @@ public class Worker
     public Task Task;
     public Game Game;
 
+    public System.Action<float> OnHealthChanged;
+    public System.Action<float> OnStressChanged;
+    public System.Action<float> OnEfficiencyChanged;
+    public System.Action<float> OnXpChanged;
+    public System.Action<float> OnNextXpChanged;
+    public System.Action<float> OnLevelChanged;
+    public System.Action<Task> OnTaskChanged;
+    public System.Action<string> OnStatusChanged;
+    public System.Action<int> OnSkillChanged;
+
     public Worker(string name, Specialty specialty, float skill, float efficiency, Project project, Game game)
     {
         Id = GenerateId();
@@ -52,21 +62,28 @@ public class Worker
         return new Vector2(WindowX + WindowW / 2f, WindowY + WindowH / 2f);
     }
 
+    private void SetStatus(string status)
+    {
+        Status = status.ToLower();
+        OnStatusChanged?.Invoke(status);
+    }
     public void AssignTask(Task task)
     {
         Game.textPop.New("Assigned!", GetWindowCenter(), Color.green);
         Project = task.Project;
         Task = task;
-        Status = "working";
+        SetStatus("working");
         Occupied = true;
+        OnTaskChanged?.Invoke(task);
     }
 
     public void RemoveFromTask()
     {
         Task = null;
-        Status = "idle";
+        SetStatus("idle");
         Occupied = false;
         Game.textPop.New("Freed!", GetWindowCenter(), Color.green);
+        OnTaskChanged?.Invoke(null);
     }
 
     public void TaskCompleted(Task task)
@@ -86,6 +103,7 @@ public class Worker
             Xp -= NextXp;
             LevelUp();
         }
+        OnXpChanged?.Invoke(Xp);
     }
 
     private void LevelUp()
@@ -94,44 +112,60 @@ public class Worker
         Level += 1;
         NextXp = Mathf.Floor(100f * Mathf.Pow(Level, 1.5f));
         Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
+        OnLevelChanged?.Invoke(Level);
+        OnNextXpChanged?.Invoke(NextXp);
     }
 
     public void IncreaseStress(float amount)
     {
         Stress = Mathf.Min(MaxStress, Stress + amount);
         if (amount > 5)
+        {
             Game.textPop.New($"Stress + {amount}", GetWindowCenter(), Color.red);
+        }
+        OnStressChanged?.Invoke(Stress);
     }
 
     public void DecreaseStress(float amount)
     {
         Stress = Mathf.Max(0, Stress - amount);
         if (amount > 5)
+        {
             Game.textPop.New($"Stress - {amount}", GetWindowCenter(), Color.green);
+        }
+        OnStressChanged?.Invoke(Stress);
     }
 
     public void IncreaseEfficiency(float amount)
     {
         Efficiency = Mathf.Min(100, Efficiency + amount);
+        OnEfficiencyChanged?.Invoke(Efficiency);
     }
 
     public void DecreaseEfficiency()
     {
         Efficiency = Mathf.Max(1, 99 - Stress);
+        OnEfficiencyChanged?.Invoke(Efficiency);
     }
 
     public void IncreaseHealth(float amount)
     {
         Health = Mathf.Min(MaxHealth, Health + (amount / 100f));
         if (amount > 5)
+        {
             Game.textPop.New($"Health + {amount}", GetWindowCenter(), Color.green);
+        }
+        OnHealthChanged?.Invoke(Health);
     }
 
     public void DecreaseHealth(float amount)
     {
         Health -= amount;
         if (amount > 5)
+        {
             Game.textPop.New($"Health - {amount}", GetWindowCenter(), Color.red);
+        }
+        OnHealthChanged?.Invoke(Health);
     }
 
     public void Death()
@@ -141,11 +175,11 @@ public class Worker
         Task?.RemoveWorker(this);
         RemoveFromTask();
         Health = 0;
-        Status = "dead";
+        SetStatus("dead");
         Game.textPop.New("Died!", GetWindowCenter(), Color.white);
     }
 
-    public void Update()
+    public void UpdateWorker()
     {
         float deltaTime = Time.deltaTime;
         if (Status == "dead") return;
