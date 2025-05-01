@@ -231,21 +231,28 @@ public class UIManager : MonoBehaviour
         // available workers
         List<string> woptions = Game.Workers
             .Where(w => w.Task == null)
-            .Select(p => $"{p.Name}, {p.Skill.ToString()}, {p.Specialty}")
+            .Select(p => $"{p.Name}, {p.Skill}, {p.Specialty}")
             .ToList();
 
-        DropdownField wdropdown = new DropdownField("Assingn worker", woptions, 0);
-        wdropdown.style.alignSelf = Align.Center;
+        DropdownField wdropdown = new ("Assign worker", woptions, -1);
+
+
         wdropdown.RegisterValueChangedCallback(evt =>
         {
             int index = woptions.IndexOf(evt.newValue);
-            if (index >= 0)
+            if (index >= 0 && index < Game.Workers.Count && Game.Workers[index] != null)
             {
                 task.AssignWorker(Game.Workers[index]);
+
                 //something wrong here, workers not exist?
 
             }
         });
+
+        Game.OnNewWorker += (worker)=> UpdateWorkerDropDown(wdropdown,task);
+        Game.OnWorkerAssigned += (worker)=> UpdateWorkerDropDown(wdropdown,task);
+        Game.OnWorkerFreed += (worker)=> UpdateWorkerDropDown(wdropdown,task);
+
         elements.Add(wdropdown);
         // Bind update events
         //task.OnDescriptionChanged += val => descLabel.text = $"Description: {val}";
@@ -273,6 +280,26 @@ public class UIManager : MonoBehaviour
 
         Root.Q<VisualElement>("content").Add(new WindowUI(task.Name, elements));
     }
+
+    private void UpdateWorkerDropDown(DropdownField wdropdown,Task task)
+    {
+        Debug.Log("Workers was updated so dropdown was updated");
+        List<string> woptions = Game.Workers
+            .Where(w => w.Task == null)
+            .Select(p => $"{p.Name}, {p.Skill.ToString()}, {p.Specialty}")
+            .ToList();
+
+
+        wdropdown.RegisterValueChangedCallback(evt =>
+        {
+            int index = woptions.IndexOf(evt.newValue);
+            if (index >= 0 && index < Game.Workers.Count && Game.Workers[index] != null)
+            {
+                task.AssignWorker(Game.Workers[index]);
+            }
+        });
+    }
+
     private void NewWorkerUI(Worker worker)
     {
         var elements = new List<VisualElement>();

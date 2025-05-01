@@ -18,7 +18,11 @@ public class Game
 
     public System.Action<Project> OnNewProject;
     public System.Action<Task> OnNewTask;
+    
     public System.Action<Worker> OnNewWorker;
+    public System.Action<Worker> OnWorkerAssigned;
+    public System.Action<Worker> OnWorkerFreed;
+    
     public System.Action<float> OnMoneyChanged;
 
     public System.Action<float> OnTimeScaleChanged;

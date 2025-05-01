@@ -75,6 +75,7 @@ public class Worker
         SetStatus("working");
         Occupied = true;
         OnTaskChanged?.Invoke(task);
+        Game.OnWorkerAssigned?.Invoke(this);
     }
 
     public void RemoveFromTask()
@@ -84,6 +85,7 @@ public class Worker
         Occupied = false;
         Game.textPop.New("Freed!", GetWindowCenter(), Color.green);
         OnTaskChanged?.Invoke(null);
+        Game.OnWorkerFreed?.Invoke(this);
     }
 
     public void TaskCompleted(Task task)

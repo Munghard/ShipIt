@@ -5,7 +5,7 @@
             <engine:Label text="SHIP IT!" name="lblTitle" class="Title" style="-unity-font-style: bold;" />
             <engine:Button text="New game" name="btnNewGame" />
         </engine:VisualElement>
-        <engine:VisualElement name="content" style="flex-grow: 1;" />
+        <engine:VisualElement name="content" class="tile-background" style="flex-grow: 1;" />
         <engine:VisualElement name="messagebox" style="flex-grow: 1; position: absolute; bottom: 0; right: 0; left: auto; top: auto; height: 400px; width: 400px; opacity: 0.5;">
             <engine:Label text="Messages&#10;" style="-unity-font-style: bold;" />
             <engine:ScrollView name="msgBoxScrollView" />

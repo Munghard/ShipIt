@@ -1,15 +1,16 @@
 :root {
-    --primary: #FFB84D; /* Softer, warmer yellow with a touch of orange */
-    --primary-hover: #FF8C00; /* More vibrant, deeper orange for hover effect */
-    --secondary: #9E7A47; /* Richer, slightly darker brownish-green for better depth */
-    --background: #363A4A; /* Darker, smoother background for better contrast */
-    --window: #B8A98D; /* Lighter, warmer beige for window for more pleasant look */
-    --header: #6A5C47; /* Softer, more natural earthy brown for the header */
-    --header-active: #90754E; /* Softer, more natural earthy brown for the header */
-    --text: #FFFFFF; /* Keep white text for contrast on dark background */
-    --btntext: #F0F0F0; /* Lighter button text for better contrast on dark buttons */
-    --border: #8C7F4B; /* More defined border color for better clarity */
-    --navbar: #2C2F3B; /* A deeper, slightly muted color for the navbar */
+--primary: #4FA3D9;           /* Calm blue, friendly but modern */
+--primary-hover: #2B7CA7;     /* Deeper blue for hover interaction */
+--secondary: #88C0D0;         /* Soft cyan for accents or highlights */
+--background: #1E1F26;        /* Very dark blue-gray for contrast and comfort */
+--window: #2F323E;            /* Slightly lighter panel background */
+--header: #3B4252;            /* Muted navy blue, subtle yet distinct */
+--header-active: #5E81AC;     /* Desaturated blue with presence */
+--text: #ECEFF4;              /* Soft off-white for less eye strain */
+--btntext: #D8DEE9;           /* Slightly dimmed white for buttons */
+--border: #4C566A;            /* Neutral, low-contrast border */
+--navbar: #242630;            /* Slightly raised navbar tone */
+
 }
 
 Button {
@@ -39,6 +40,13 @@ DropdownField{
     border-color: var(--secondary);
     border-width: 4px;
     margin: 10px;
+}
+
+.tile-background {
+    background-image: url("/Assets/Resources/textures/pattern-plus.jpg");
+    background-repeat: repeat;
+    background-size: auto;
+    -unity-background-image-tint-color:var(--background);
 }
 
 Label{
@@ -80,6 +88,7 @@ Label{
     border-width: 4px;
     border-color: var(--border);
     border-radius:8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 1);
 }
 #window:hover{
     border-color: white;
