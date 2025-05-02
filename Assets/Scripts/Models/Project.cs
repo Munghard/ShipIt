@@ -10,6 +10,8 @@ public class Project
     public float Difficulty;
     public float Duration;
     public float Progress;
+    public float ReputationNeeded;
+    public float ReputationGain;
     public List<Task> Tasks = new();
     public int StartingTasks;
     public string Status;
@@ -38,6 +40,8 @@ public class Project
         Description = description;
         Difficulty = difficulty;
         Duration = duration;
+        ReputationNeeded = (difficulty - 1) * 500;
+        ReputationGain = (difficulty) * 100;
         StartDuration = duration;
         Pay = pay ?? difficulty * 1000;
         Status = "pending";
@@ -99,11 +103,12 @@ public class Project
 
     public void CompleteTask(Task task)
     {
-        Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
+        //Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
 
         foreach (var worker in Game.Workers)
         {
-            worker.Stress -= task.Difficulty / task.Workers.Count;
+            int workerCount = Mathf.Max(1, task.Workers.Count);
+            worker.Stress -= task.Difficulty / workerCount;
             worker.Stress = Mathf.Max(0, worker.Stress);
         }
 
@@ -137,6 +142,27 @@ public class Project
             worker.IncreaseStress(50);
         }
         OnFailed?.Invoke(this);
+    }
+    public void TurnInProject()
+    {
+        // logic for randomizing submission success
+        var roll = UnityEngine.Random.value * 100;
+        if (Progress >= roll)
+        {
+            // get paid
+            // get rep
+            Game.GainMoney(Pay);
+            Game.GainReputation(ReputationGain);
+            CompleteProject();
+        }
+        else
+        {
+            // dont get paid // get a fine 25%
+            // suffer rep damage 25%
+            Game.SpendMoney(Pay / 4);
+            Game.ReduceReputation(ReputationGain / 4);
+            FailProject();
+        }
     }
     public void CompleteProject()
     {

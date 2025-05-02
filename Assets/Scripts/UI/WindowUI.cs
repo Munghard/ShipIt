@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class WindowUI : VisualElement
 {
 
-    public WindowUI(string header, List<VisualElement> elements)
+    public WindowUI(string headerText,Sprite sprite, List<VisualElement> elements, Vector2 position)
     {
         // Load the UXML file and clone it
         var visualTree = Resources.Load<VisualTreeAsset>("UI/WindowUI");
@@ -18,7 +18,28 @@ public class WindowUI : VisualElement
             Debug.LogError("UXML file not found!");
         }
 
-        this.Q<Label>("lblHeader").text = header; // Set the header text
+        this.style.left = position.x;
+        this.style.top = position.y;
+
+        this.Q<Label>("lblHeader").text = headerText; // Set the header text
+
+        // icon
+        var header = this.Q<VisualElement>("header");
+        Image icon = new()
+        {
+            sprite = sprite,
+            style = 
+            {
+                width = 32,
+                height = 32,
+                marginLeft = 9,
+                marginRight = 9,
+                marginTop = 9,
+                marginBottom = 9,
+            },
+        };
+
+        header.Insert(0,icon);
 
         // Optionally, get references to specific elements in the UXML and add logic
         var closeButton = this.Q<Button>("closeButton");
@@ -41,6 +62,15 @@ public class WindowUI : VisualElement
         else
         {
             Debug.LogError("Container not found!");
+        }
+        var minimize = this.Q<Button>("btnMin"); // Set the header text
+        if (minimize != null)
+        {
+            minimize.clicked += () =>
+            {
+                container.style.display = container.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None;
+                minimize.text = minimize.text == "-" ? "+" : "-";
+            };
         }
 
         Draggable.MakeDraggable(this);

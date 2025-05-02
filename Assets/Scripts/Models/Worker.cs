@@ -19,6 +19,8 @@ public class Worker
     public int TasksCompleted;
     public int TasksFailed;
 
+    public Sprite Portrait;
+
     public float WindowX, WindowY, WindowW, WindowH;
 
     public Project Project;
@@ -35,10 +37,11 @@ public class Worker
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
 
-    public Worker(string name, Specialty specialty, float skill, float efficiency, Project project, Game game)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game)
     {
         Id = GenerateId();
         Name = name;
+        Portrait = portrait;
         Specialty = specialty;
         Skill = (int)skill;
         Efficiency = efficiency;
@@ -69,7 +72,7 @@ public class Worker
     }
     public void AssignTask(Task task)
     {
-        Game.textPop.New("Assigned!", GetWindowCenter(), Color.green);
+        Game.textPop.New(Name + " assigned!", GetWindowCenter(), Color.green);
         Project = task.Project;
         Task = task;
         SetStatus("working");
@@ -83,7 +86,7 @@ public class Worker
         Task = null;
         SetStatus("idle");
         Occupied = false;
-        Game.textPop.New("Freed!", GetWindowCenter(), Color.green);
+        Game.textPop.New(Name + " freed!", GetWindowCenter(), Color.green);
         OnTaskChanged?.Invoke(null);
         Game.OnWorkerFreed?.Invoke(this);
     }
@@ -93,7 +96,7 @@ public class Worker
         TasksCompleted++;
         DecreaseStress(task.Difficulty * 5);
         GainXp(task.Difficulty * task.TimeToComplete);
-        RemoveFromTask();
+        //RemoveFromTask(); // already called in task
     }
 
     public void GainXp(float amount)

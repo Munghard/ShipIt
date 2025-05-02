@@ -100,6 +100,7 @@ public class Task
                 multiplier = 0.2f;
 
             Progress += (multiplier * worker.Efficiency * deltaTime) / TimeToComplete;
+            OnProgressChanged?.Invoke(Progress);
         }
 
         if (Status == "pending" && Workers.Count > 0)

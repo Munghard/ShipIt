@@ -1,8 +1,9 @@
-using System;
+using Assets.Scripts.Utils;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.UIElements;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,11 +11,20 @@ public class UIManager : MonoBehaviour
 {
     private Button btnNewGame;
     public VisualElement navbar;
-    public VisualElement content;
+    public VisualElement workContent;
     public VisualElement messagebox;
     Game Game;
 
     VisualElement Root;
+
+    List<Sprite> Icons;
+
+    private void Awake()
+    {
+        // load icons
+        Icons = Resources.LoadAll<Sprite>("textures/IconsShadow-32").ToList();
+    }
+
     void Start()
     {
         Game = new Game();
@@ -27,16 +37,12 @@ public class UIManager : MonoBehaviour
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
         navbar = Root.Q<VisualElement>("navbar");
-        content = Root.Q<VisualElement>("content");
+        workContent = Root.Q<VisualElement>("workContent");
         messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
         btnNewGame = Root.Q<Button>("btnNewGame"); // Access the button by name
         btnNewGame.clicked += () =>
         {
-            Game.textPop.New("New game started!",Vector2.zero, Color.white);
-            var project = new Project(Game, "Starting project", "Your first project.", 1, 3000);
-            var worker = new Worker("Willy Worker",Specialty.Get("General"),1,100,project,Game);
-            Game.AddWorker(worker);
-            Game.AddProject(project);
+            Game.NewGame();
         };    // Add click event handler
 
         CreateNavBar();
@@ -48,30 +54,19 @@ public class UIManager : MonoBehaviour
     }
     private void CreateNavBar()
     {
-        var btn = new Button()
-        {
-            text = "NavBar Button"
-        };
-        navbar.Add(btn); // Access the button by name
-        btn.clicked += ()=>
-        {
-            Debug.Log("NavBar Button clicked!");
-            Game?.textPop.New("NavBar Button clicked!", Vector2.zero, new Color(0.5f, 0.5f, 0.0f));
-        };    // Add click event handler
-
-        // available projects
+        // Initial options
         List<string> options = Game.AvailableProjects
-          .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$")
-          .ToList();
-
-
+            .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$ Rep: {p.ReputationNeeded} {(p.ReputationNeeded > Game.Reputation ? "[LOCKED]" : "")}")
+            .ToList();
 
         DropdownField dropdown = new DropdownField("Projects", options, 0);
-        dropdown.style.alignSelf = Align.Center;
-        dropdown.RegisterValueChangedCallback(evt => 
+        dropdown.AddToClassList("truncate");
+        //dropdown.style.alignSelf = Align.Center;
+
+        dropdown.RegisterValueChangedCallback(evt =>
         {
             int index = options.IndexOf(evt.newValue);
-            if (index >= 0)
+            if (index >= 0 && Game.AvailableProjects[index].ReputationNeeded <= Game.Reputation)
             {
                 Game.AddProject(Game.AvailableProjects[index]);
                 Game.RemoveProjectFromAvailableProjects(Game.AvailableProjects[index]);
@@ -80,18 +75,20 @@ public class UIManager : MonoBehaviour
 
         Game.OnAvailableProjectsChanged += (projects) =>
         {
-            List<string> options = Game.AvailableProjects
-                .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$")
+            options = Game.AvailableProjects
+                .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$ Rep: {p.ReputationNeeded} {(p.ReputationNeeded > Game.Reputation ? "[LOCKED]" : "")}")
                 .ToList();
 
-            if (dropdown.choices.Count > 0)
+            dropdown.choices = options;
+
+            if (options.Count > 0)
                 dropdown.index = 0;
             else
                 dropdown.value = null;
         };
 
         navbar.Add(dropdown);
-        
+
 
         // available workers
         List<string> woptions = Game.WorkersForHire
@@ -99,7 +96,8 @@ public class UIManager : MonoBehaviour
           .ToList();
 
         DropdownField wdropdown = new DropdownField("Workers", woptions, 0);
-        wdropdown.style.alignSelf = Align.Center;
+        wdropdown.AddToClassList("truncate");
+        //wdropdown.style.alignSelf = Align.Center;
         wdropdown.RegisterValueChangedCallback(evt =>
         {
             int index = woptions.IndexOf(evt.newValue);
@@ -127,14 +125,56 @@ public class UIManager : MonoBehaviour
 
         Label fundsLabel = new Label($"Funds: {Game.Money}$");
         Game.OnMoneyChanged += (money) => fundsLabel.text = $"Funds: {Game.Money}$";
-        
+        fundsLabel.AddToClassList("navbar-label");
+
         navbar.Add(fundsLabel);
 
+        Label repLabel = new Label($"Reputation: {Game.Reputation}");
+        Game.OnReputationChanged += (rep) => repLabel.text = $"Reputation: {Game.Reputation}";
+        repLabel.AddToClassList("navbar-label");
 
-        Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}");
+        navbar.Add(repLabel);
+
+
+        VisualElement vTimeContainer = new VisualElement()
+        {
+            style =
+            {
+                flexDirection = FlexDirection.Column
+            }
+        };
+
+        VisualElement hTimeContainer = new VisualElement()
+        {
+            style =
+            {
+                flexDirection = FlexDirection.Row
+            }
+        };
+
+
+
+        navbar.Add(vTimeContainer);
+
+        Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
+        {
+            style =
+            {
+                fontSize = 25
+            }
+        };
         Game.OnTimeScaleChanged += (time) => timeScaleLabel.text = $"Time scale: {time}x";
+        timeScaleLabel.AddToClassList("navbar-label");
         
-        navbar.Add(timeScaleLabel);
+        vTimeContainer.Add(timeScaleLabel);
+
+        Button btnDown = new Button()
+        {
+            text = "0.5x",
+        };
+        btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
+
+        hTimeContainer.Add(btnDown);
 
         Button btnUp = new Button()
         {
@@ -142,43 +182,51 @@ public class UIManager : MonoBehaviour
         };
         btnUp.clicked += () => Game.SetTimeScale(Game.TimeScale * 2);
 
-        navbar.Add(btnUp);
+        hTimeContainer.Add(btnUp);
         
-        Button btnDown = new Button()
+        Button btnPause = new Button()
         {
-            text = "0.5x",
+            text = "Pause",
         };
-        btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
+        btnPause.clicked += () => Game.TogglePaused();
 
-        navbar.Add(btnDown);
+        hTimeContainer.Add(btnPause);
+
+        vTimeContainer.Add(hTimeContainer);
     }
 
 
     private void NewProjectUI(Project project)
     {
+        var projectIndex = Game.Projects.IndexOf(project);
+
         var elements = new List<VisualElement>();
 
-        ProgressBar progressBar = new ProgressBar()
+        ProgressBar pBar = new ProgressBar()
         {
             value = project.Progress,
             lowValue = 0,
-            highValue = 100
+            highValue = 100,
+            tooltip = "Progress"
         };
-        progressBar.style.backgroundColor = Color.green;
+        var pBarFill = pBar.Q(className: "unity-progress-bar__progress");
+        pBarFill.style.backgroundColor = ProgressBarColors.Green;
 
-        project.OnProgressChanged += (value) => progressBar.value = value;
+        project.OnProgressChanged += (value) => pBar.value = value;
     
 
-        ProgressBar deadlineBar = new ProgressBar()
+        ProgressBar dlBar = new ProgressBar()
         {
             value = project.Duration,
             lowValue = 0,
             highValue = project.StartDuration,
+            tooltip = "Deadline"
         };
 
-        deadlineBar.style.color = Color.red;
+        var dlBarFill = dlBar.Q(className: "unity-progress-bar__progress");
+        dlBarFill.style.backgroundColor = ProgressBarColors.Red;
 
-        project.OnDurationChanged += (value) => deadlineBar.value = value;
+        project.OnDurationChanged += (value) => dlBar.value = value;
 
         Label idLabel = new Label($"ProjectID: {project.Id}");
         Label descLabel = new Label($"Description: {project.Description}");
@@ -203,20 +251,40 @@ public class UIManager : MonoBehaviour
         project.OnTasksChanged += (tasks) => tasksLeftLabel.text = $"Tasks left: {tasks.Count}";
         project.OnDurationChanged += (value) => durationLabel.text = $"Duration: {project.Duration}";
 
-        elements.Add(deadlineBar);
-        elements.Add(progressBar);
+        elements.Add(dlBar);
+        elements.Add(pBar);
 
-        Root.Q<VisualElement>("content").Add(new WindowUI(project.Name,elements));
+        Button btnSubmit = new()
+        {
+            text = "Ship it!",
+        };
+        btnSubmit.clicked += () =>
+        {
+            project.TurnInProject();
+        };
+
+        elements.Add(btnSubmit);
+        
+        workContent.Add(new WindowUI(project.Name, Icons[36], elements, new Vector2(projectIndex * 100, projectIndex * 100)));
     }
     private void NewTaskUI(Task task)
     {
+        int taskIndex = 0;
+
+        var project = Game.Projects.FirstOrDefault(p => p.Tasks.Contains(task));
+        if (project != null)
+        {
+            taskIndex = project.Tasks.IndexOf(task);
+            // Use project and taskIndex as needed
+        }
+
         var elements = new List<VisualElement>();
 
         Label idLabel = new Label($"TaskID: {task.Id}");
-        Label descLabel = new Label($"Description: {task.Description}");
+        Label descLabel = new Label($"Description: {TextWrap.WrapText(task.Description,30)}");
         Label diffLabel = new Label($"Difficulty: {task.Difficulty}");
         Label priorityLabel = new Label($"Priority: {task.Priority}");
-        Label specLabel = new Label($"Speciality: {task.Specialty}");
+        Label specLabel = new Label($"Speciality: {task.Specialty.Name}");
         Label statusLabel = new Label($"Status: {task.Status}");
         Label workersLabel = new Label($"Assigned workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
 
@@ -228,10 +296,15 @@ public class UIManager : MonoBehaviour
         elements.Add(statusLabel);
         elements.Add(workersLabel);
 
-        // available workers
-        List<string> woptions = Game.Workers
+        // Keep actual worker references
+        List<Worker> availableWorkers = Game.Workers
             .Where(w => w.Task == null)
-            .Select(p => $"{p.Name}, {p.Skill}, {p.Specialty}")
+            .ToList();
+
+        // available workers
+        List<string> woptions = availableWorkers
+            .Where(w => w.Task == null)
+            .Select(p => $"{p.Name}, {p.Skill}, {p.Specialty.Name}")
             .ToList();
 
         DropdownField wdropdown = new ("Assign worker", woptions, -1);
@@ -240,18 +313,16 @@ public class UIManager : MonoBehaviour
         wdropdown.RegisterValueChangedCallback(evt =>
         {
             int index = woptions.IndexOf(evt.newValue);
-            if (index >= 0 && index < Game.Workers.Count && Game.Workers[index] != null)
+            if (index >= 0 && index < availableWorkers.Count)
             {
-                task.AssignWorker(Game.Workers[index]);
-
-                //something wrong here, workers not exist?
-
+                Worker selectedWorker = availableWorkers[index];
+                task.AssignWorker(selectedWorker);
             }
         });
 
-        Game.OnNewWorker += (worker)=> UpdateWorkerDropDown(wdropdown,task);
-        Game.OnWorkerAssigned += (worker)=> UpdateWorkerDropDown(wdropdown,task);
-        Game.OnWorkerFreed += (worker)=> UpdateWorkerDropDown(wdropdown,task);
+        Game.OnNewWorker += (worker)=> SetupWorkerDropdown(wdropdown,task);
+        Game.OnWorkerAssigned += (worker)=> SetupWorkerDropdown(wdropdown,task);
+        Game.OnWorkerFreed += (worker)=> SetupWorkerDropdown(wdropdown,task);
 
         elements.Add(wdropdown);
         // Bind update events
@@ -270,47 +341,79 @@ public class UIManager : MonoBehaviour
         {
             value = task.Progress,
             lowValue = 0,
-            highValue = 100
+            highValue = 100,
+            tooltip = "Progress"
         };
-        pBar.style.backgroundColor = Color.green;
+        var pBarFill = pBar.Q(className: "unity-progress-bar__progress");
+        pBarFill.style.backgroundColor = ProgressBarColors.Green;
 
         task.OnProgressChanged += (progress) => pBar.value = progress;
 
         elements.Add(pBar);
-
-        Root.Q<VisualElement>("content").Add(new WindowUI(task.Name, elements));
+        workContent.Add(new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 100) + 400, taskIndex * 100)));
     }
+    private Dictionary<DropdownField, EventCallback<ChangeEvent<string>>> dropdownCallbacks = new();
 
-    private void UpdateWorkerDropDown(DropdownField wdropdown,Task task)
+    private void SetupWorkerDropdown(DropdownField dropdown, Task task)
     {
-        Debug.Log("Workers was updated so dropdown was updated");
-        List<string> woptions = Game.Workers
+        // Get available workers
+        List<Worker> availableWorkers = Game.Workers
             .Where(w => w.Task == null)
-            .Select(p => $"{p.Name}, {p.Skill.ToString()}, {p.Specialty}")
             .ToList();
 
+        List<string> options = availableWorkers
+            .Select(w => $"{w.Name}, {w.Skill}, {w.Specialty}")
+            .ToList();
 
-        wdropdown.RegisterValueChangedCallback(evt =>
+        // Remove existing callback if one is registered
+        if (dropdownCallbacks.TryGetValue(dropdown, out var oldCallback))
         {
-            int index = woptions.IndexOf(evt.newValue);
-            if (index >= 0 && index < Game.Workers.Count && Game.Workers[index] != null)
+            dropdown.UnregisterValueChangedCallback(oldCallback);
+            dropdownCallbacks.Remove(dropdown);
+        }
+
+        // Update dropdown
+        dropdown.choices = options;
+        dropdown.index = -1;
+
+        // Create new callback
+        EventCallback<ChangeEvent<string>> callback = evt =>
+        {
+            int index = options.IndexOf(evt.newValue);
+            if (index >= 0 && index < availableWorkers.Count)
             {
-                task.AssignWorker(Game.Workers[index]);
+                task.AssignWorker(availableWorkers[index]);
             }
-        });
+        };
+
+        dropdown.RegisterValueChangedCallback(callback);
+        dropdownCallbacks[dropdown] = callback;
     }
+
+
 
     private void NewWorkerUI(Worker worker)
     {
+        var workerIndex = Game.Workers.IndexOf(worker);
+
         var elements = new List<VisualElement>();
+
+        Image imgPortrait = new()
+        {
+            sprite = worker.Portrait,
+        };
+        imgPortrait.AddToClassList("portrait");
+
+        elements.Add (imgPortrait);
+
         Label idLabel = new Label($"WorkerID: {worker.Id}");
         Label levelLabel = new Label($"Level: {worker.Level}");
         Label xpLabel = new Label($"Current xp: {worker.Xp}");
         Label nextXpLabel = new Label($"Next xp: {worker.NextXp}");
         Label skillLabel = new Label($"Skill: {worker.Skill}");
-        Label specialtyLabel = new Label($"Speciality: {worker.Specialty}");
+        Label specialtyLabel = new Label($"Speciality: {worker.Specialty.Name}");
         Label statusLabel = new Label($"Status: {worker.Status}");
-        Label taskLabel = new Label($"Task: {worker.Task}");
+        Label taskLabel = new Label($"Task: {worker.Task?.Name}");
 
         elements.Add(idLabel);
         elements.Add(levelLabel);
@@ -328,17 +431,20 @@ public class UIManager : MonoBehaviour
         worker.OnSkillChanged += val => skillLabel.text = $"Skill: {val}";
         //worker.OnSpecialtyChanged += val => specialtyLabel.text = $"Speciality: {val}";
         worker.OnStatusChanged += val => statusLabel.text = $"Status: {val}";
-        worker.OnTaskChanged += val => taskLabel.text = $"Task: {val}";
+        worker.OnTaskChanged += val => taskLabel.text = $"Task: {val?.Name}";
 
 
         ProgressBar hBar = new ProgressBar()
         {
             value = worker.Health,
             lowValue = 0,
-            highValue = 100
+            highValue = 100,
+            tooltip = "Health"
         };
-        hBar.style.backgroundColor = Color.green;
-        
+
+        var hBarFill = hBar.Q(className: "unity-progress-bar__progress");
+        hBarFill.style.backgroundColor = ProgressBarColors.Red;
+
         elements.Add(hBar);
 
         worker.OnHealthChanged += (value) => hBar.value = value;
@@ -347,9 +453,12 @@ public class UIManager : MonoBehaviour
         {
             value = worker.Stress,
             lowValue = 0,
-            highValue = 100
+            highValue = 100,
+            tooltip = "Stress"
         };
-        sBar.style.backgroundColor = Color.cyan;
+
+        var sBarFill = sBar.Q(className: "unity-progress-bar__progress");
+        sBarFill.style.backgroundColor = ProgressBarColors.Yellow;
 
         elements.Add(sBar);
         worker.OnStressChanged += (value) => sBar.value = value;
@@ -358,19 +467,22 @@ public class UIManager : MonoBehaviour
         {
             value = worker.Efficiency,
             lowValue = 0,
-            highValue = 100
+            highValue = 100,
+            tooltip = "Efficiency"
         };
-        eBar.style.backgroundColor = Color.cyan;
+        var eBarFill = eBar.Q(className: "unity-progress-bar__progress");
+        eBarFill.style.backgroundColor = ProgressBarColors.Cyan;
 
         worker.OnEfficiencyChanged += (value) => eBar.value = value;
 
         elements.Add(eBar);
 
-        Root.Q<VisualElement>("content").Add(new WindowUI(worker.Name, elements));
+        workContent.Add(new WindowUI(worker.Name, Icons[20], elements, new Vector2(workerIndex * 100, (workerIndex * 100) + 600)));
     }
 
     private void NewMessageBox(string message, Color color)
     {
+        Debug.Log("New message: " +  message);
         var label = new Label()
         {
             text = message,
@@ -380,6 +492,6 @@ public class UIManager : MonoBehaviour
                 marginBottom = 5,
             }
         };
-        messagebox.Add(label);
+        messagebox.Insert(0,label);
     }
 }

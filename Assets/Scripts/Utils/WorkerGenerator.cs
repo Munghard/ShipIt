@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WorkerGenerator
@@ -13,47 +14,24 @@ public class WorkerGenerator
         "Miller", "Davis", "García", "Rodriguez", "Martínez"
     };
 
-    private readonly List<Rect> portraitRects = new();
-    private Texture2D texture;
-    private const int PortraitWidth = 70;
-    private const int PortraitHeight = 70;
 
-    
+    List<Sprite> AllSprites = new List<Sprite>();
+    List<Sprite> Sprites = new List<Sprite>();
+
 
     public void Load()
     {
-        texture = Resources.Load<Texture2D>("textures/Portraits Packed (5x)");
-        if (texture == null)
-        {
-            Debug.LogError("Portrait texture not found!");
-            return;
-        }
 
-        for (int j = 0; j < 10; j++)
-        {
-            for (int i = 0; i < 20; i++)
-            {
-                var rect = new Rect(i * PortraitWidth, j * PortraitHeight, PortraitWidth, PortraitHeight);
-                portraitRects.Add(rect);
-            }
-        }
-
-        Debug.Log("Portraits loaded: " + portraitRects.Count);
+        AllSprites = Resources.LoadAll<Sprite>("textures/Portraits").ToList();
+        Sprites.AddRange(AllSprites); 
+        Debug.Log("Portraits loaded: " + AllSprites.Count);
     }
 
-    public PortraitData GetRandomPortrait()
+    public Sprite GetRandomPortrait()
     {
-        int index = Random.Range(0, portraitRects.Count);
-        var rect = portraitRects[index];
-
-        return new PortraitData
-        {
-            X = rect.x,
-            Y = rect.y,
-            Width = rect.width,
-            Height = rect.height,
-            Texture = texture
-        };
+        var _sprite = Sprites[Random.Range(0, AllSprites.Count)];
+        Sprites.Remove(_sprite);
+        return _sprite;
     }
 
     public string GenerateRandomName()

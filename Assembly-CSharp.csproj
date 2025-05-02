@@ -68,17 +68,23 @@
     <Compile Include="Assets\Scripts\Models\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\UI\Draggable.cs" />
+    <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
+    <Compile Include="Assets\Scripts\Utils\PlayerInput.cs" />
     <Compile Include="Assets\Scripts\Models\Worker.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
     <Compile Include="Assets\Scripts\Utils\PortraitData.cs" />
+    <Compile Include="Assets\Scripts\Utils\TextWrap.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\UI\MainUI.uxml" />
+    <None Include="Assets\Scripts\UI\WorkPage.uxml" />
+    <None Include="Assets\Scripts\UI\ProjectsPage.uxml" />
     <None Include="Assets\Scripts\UI\general.uss" />
     <None Include="Assets\Resources\UI\WindowUI.uxml" />
+    <None Include="Assets\Scripts\UI\HiringPage.uxml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

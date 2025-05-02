@@ -1,3 +1,4 @@
+using Assets.Scripts.Utils;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,9 @@ public class Game
     public List<Worker> Workers = new();
     public List<Worker> WorkersForHire = new();
     public float Money = 1000f;
+
+    public float Reputation = 50f;
+
     public float TimeScale = 1f;
     public float ScaledDeltaTime;
     public bool Paused = false;
@@ -25,20 +29,79 @@ public class Game
     
     public System.Action<float> OnMoneyChanged;
 
+    public System.Action<float> OnReputationChanged;
+
     public System.Action<float> OnTimeScaleChanged;
 
     public System.Action<List<Project>> OnAvailableProjectsChanged;
     public System.Action<List<Worker>> OnAvailableWorkersChanged;
 
+    PlayerInput PlayerInput;
     public Game()
     {
+        PlayerInput = new(this);
         textPop = new TextPop();
         iconManager = new IconManager();
         workerGenerator = new WorkerGenerator();
         Load();
         Debug.Log("New game instance created");
     }
+    public void NewGame()
+    {
+        Projects = new List<Project>();
+        Workers = new List<Worker>();
+        AvailableProjects = new List<Project>();
+        WorkersForHire = new List<Worker>();
+        SetMoney(1000);
+        SetReputation(50);
 
+        var project = new Project(this, "Starting project", "Your first project.", 1, 3000);
+        var worker = new Worker("Willy Worker",workerGenerator.GetRandomPortrait(), Specialty.Get("General"), 1, 100, project, this);
+        AddWorker(worker);
+        AddProject(project);
+
+        textPop.New("New game started!", Vector2.zero, Color.white);
+    }
+
+    public void SetReputation(float amount)
+    {
+        Reputation = amount;
+        OnReputationChanged?.Invoke(Reputation);
+    }
+    public void ReduceReputation(float amount)
+    {
+        Reputation -= amount;
+        OnReputationChanged?.Invoke(Reputation);
+    }
+    public void GainReputation(float amount)
+    {
+        Reputation += amount;
+        OnReputationChanged?.Invoke(Reputation);
+    }
+    public bool HasReputation(float amount)
+    {
+        return Reputation >= amount;
+    }
+
+    public void SetMoney(float amount)
+    {
+        Money = amount;
+        OnMoneyChanged?.Invoke(Money);
+    }
+    public void SpendMoney(float amount)
+    {
+        Money -= amount;
+        OnMoneyChanged?.Invoke(Money);
+    }
+    public void GainMoney(float amount)
+    {
+        Money += amount;
+        OnMoneyChanged?.Invoke(Money);
+    }
+    public bool HasMoney(float amount)
+    {
+        return Money >= amount;
+    }
     public void Load()
     {
         iconManager.Load();
@@ -55,7 +118,7 @@ public class Game
             float difficulty = Random.Range(1, 5);
             float duration = Random.Range(6, 20) * 60;
             float pay = (difficulty * 500) + Random.Range(50, 200);
-            var project = new Project(this, "ProjectName_placeholder", "Project description placeholder", difficulty, duration, pay);
+            var project = new Project(this, "Project" + i, "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
         }
         OnAvailableProjectsChanged?.Invoke(AvailableProjects);
@@ -74,6 +137,7 @@ public class Game
 
             var newWorker = new Worker(
                 workerGenerator.GenerateRandomName(),
+                workerGenerator.GetRandomPortrait(),
                 Specialty.GenerateRandomSpecialty(),
                 skill,
                 100f,
@@ -115,6 +179,7 @@ public class Game
     {
         Debug.Log($"Project {project.Name} completed!");
         textPop.New("Project completed!", project.GetWindowCenter(), Color.green);
+        GainReputation(project.Difficulty * 100);
         RollWorkersForHire(3);
         RollProjects(3);
     }
@@ -145,6 +210,9 @@ public class Game
         ScaledDeltaTime = dt * TimeScale;
 
         Time.timeScale = TimeScale;
+        PlayerInput.UpdateInput();
+
+        if (Paused) return;
 
         foreach (var project in Projects)
         {

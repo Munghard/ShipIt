@@ -47,7 +47,7 @@ public static class Draggable
                     Vector2 mouseInParent = parent.WorldToLocal(pointerEvt.position);
                     Vector2 elementTopLeft = element.layout.position;
 
-                    dragOffset = mouseInParent - elementTopLeft + new Vector2(20,20);
+                    dragOffset = mouseInParent - elementTopLeft /*+ new Vector2(20,20)*/;
 
                     element.CapturePointer(pointerEvt.pointerId);
                     isDragging = true;

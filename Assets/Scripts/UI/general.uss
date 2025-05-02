@@ -14,36 +14,103 @@
 }
 
 Button {
-    background-color: var(--primary);
-    width: 200px;
+    background-color: var(--header);
     height: 50px;
     font-size: 20px;
-    color: var(--btntext);
+    color: white;
+    font-weigth: 800;
     border-radius: 5px;
-    border-color: var(--secondary);
+    border-color: var(--border);
     border-width: 4px;
     margin: 10px;
+
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+    width: auto;
 }
 Button:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary);
 }
 
+.unity-tab__header{
+background-color: var(--header);
+color: var(--background);
+height: auto;
+font-size: 20px;
+font-weigth: 800;
+border-radius: 5px 5px 0px 0px;
+border-color: var(--border);
+border-width: 4px;
+
+margin: 10px;
+
+/* flex-grow: 0; */
+/* flex-shrink: 1; */
+/* flex-basis: auto; */
+/* width: auto; */
+}
+.unity-tab__header:hover{
+    background-color: var(--primary-hover);
+    border-color: var(--primary);
+}
+
+#pageHeader{
+    color: var(--header-active);
+}
+.page{
+    height: 100%;
+    grow: 1;
+}
+.unity-tab{
+    height: 100%;
+    grow: 1;
+}
+.unity-tab-view__header-container{
+    padding:20px 0 0 40px;
+    border-width: 0 0 4px 0;
+    border-color: var(--border);
+}
+.unity-tab-view__content-container{
+    height:100%;
+    flex-grow: 1;
+}
+.unity-tab__content-container{
+    height:100%;
+    flex-grow: 1;
+}
+.unity-tab__header-underline{
+    display:none;
+    background-color:var(--primary);
+}
 DropdownField{
     flex-direction: column;
-    background-color: var(--primary);
+    background-color: var(--header);
+    color: var(--background);
+    
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
     width: 200px;
-    height: 50px;
-    font-size: 20px;
-    color: var(--btntext);
+    /* width: 200px; */
+    /* height: 50px; */
+    /* font-size: 20px; */
+    /* color: var(--btntext); */
     border-radius: 5px;
-    border-color: var(--secondary);
+    border-color: var(--border);
     border-width: 4px;
-    margin: 10px;
+    /* margin: 10px; */
+}
+.unity-progress-bar__background {
+    border-radius: 8px;
+}
+.unity-progress-bar__progress {
+    border-radius: 8px;
 }
 
 .tile-background {
-    background-image: url("/Assets/Resources/textures/pattern-plus.jpg");
+    background-image: url("/Assets/Resources/textures/grid.png");
     background-repeat: repeat;
     background-size: auto;
     -unity-background-image-tint-color:var(--background);
@@ -52,7 +119,10 @@ DropdownField{
 Label{
     font-size: 20px;
     color: var(--text);
-    margin: 10px;
+    /* overflow:Hidden; */
+    /* white-space: NoWrap; */
+    /* text-overflow:Ellipsis; */
+    /* margin: 10px; */
 }
 
 #main{
@@ -71,6 +141,10 @@ Label{
     border-color: var(--border);
     /* padding: 20px; */
 }
+.navbar-label
+{
+    font-size: 40px;
+}
 .Title{
     font-size: 60px;
     color: var(--primary);
@@ -85,10 +159,10 @@ Label{
      /* window stuff */
 #window{
     background-color: var(--window);
+    opacity: 0.95;
     border-width: 4px;
     border-color: var(--border);
     border-radius:8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 1);
 }
 #window:hover{
     border-color: white;
@@ -127,4 +201,24 @@ Label{
 
 .header-active {
     background-color:var(--header-active);
+}
+.portrait
+{
+    width : 150;
+    height : 150;
+    border-radius : 8;
+    border-width : 4;
+    background-color:gray;
+    border-color : var(--secondary);
+}
+/* .portrait:hover */
+/* { */
+/*     background-color:white; */
+/*     border-color : white; */
+/*     transition : all 0.5s ease; */
+/* } */
+.truncate {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
