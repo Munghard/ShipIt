@@ -1,17 +1,26 @@
+using Assets.Scripts.Data;
+using Assets.Scripts.Models;
 using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.PackageManager.UI;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.GridBrushBase;
 
 public class UIManager : MonoBehaviour
 {
     private Button btnNewGame;
     public VisualElement navbar;
     public VisualElement workContent;
+    public VisualElement projectsContent;
+    public VisualElement staffingContent;
+    public VisualElement shopContent;
     public VisualElement messagebox;
     Game Game;
 
@@ -30,24 +39,89 @@ public class UIManager : MonoBehaviour
         Game = new Game();
 
         Game.OnNewProject += NewProjectUI;
+
+        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
+
+        Game.OnProjectsChanged += ProjectsChanged;
+
+        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
+
         Game.OnNewWorker += NewWorkerUI;
-        Game.OnNewTask += NewTaskUI;
+
         Game.textPop.OnNewTextPop += NewMessageBox;
+
+        Game.OnProjectsChanged += UpdateShop;
+
 
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
         navbar = Root.Q<VisualElement>("navbar");
         workContent = Root.Q<VisualElement>("workContent");
+        staffingContent = Root.Q<VisualElement>("staffingContent");
+        projectsContent = Root.Q<VisualElement>("projectsContent");
+        shopContent = Root.Q<VisualElement>("shopContent");
+
         messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
         btnNewGame = Root.Q<Button>("btnNewGame"); // Access the button by name
         btnNewGame.clicked += () =>
         {
             Game.NewGame();
         };    // Add click event handler
+        SetButtonIcon(btnNewGame, Icons[74], "New game");
 
         CreateNavBar();
 
     }
+
+    private void UpdateShop(List<Project> list)
+    {
+        foreach (var buyable in BuyableLibrary.GetBuyables())
+        {
+            NewBuyableUI(buyable);
+        }
+    }
+
+
+
+    private void AvailableWorkersChanged(List<Worker> list)
+    {
+        staffingContent.Clear();
+        foreach (Worker worker in list)
+        {
+            NewAvailableWorkerUI(worker);
+        }
+    }
+
+    private void AvailableProjectsChanged(List<Project> list)
+    {
+        projectsContent.Clear();
+        foreach (Project project in list) 
+        {
+            NewAvailableProjectUI(project);
+        }
+    }
+    private void ProjectsChanged(List<Project> list)
+    {
+        var toRemove = workContent.Children()
+            .Where(c => !c.ClassListContains("worker-window")) // or use your custom check
+            .ToList();
+
+        foreach (var element in toRemove)
+        {
+            workContent.Remove(element);
+        }
+
+
+        foreach (Project project in list) 
+        {
+            NewProjectUI(project);
+            foreach(Task task in project.Tasks.AsEnumerable().Reverse().ToList())
+            {
+                NewTaskUI(task);
+            }
+        }
+    }
+
     private void Update()
     {
         Game?.UpdateGame();
@@ -55,73 +129,6 @@ public class UIManager : MonoBehaviour
     private void CreateNavBar()
     {
         // Initial options
-        List<string> options = Game.AvailableProjects
-            .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$ Rep: {p.ReputationNeeded} {(p.ReputationNeeded > Game.Reputation ? "[LOCKED]" : "")}")
-            .ToList();
-
-        DropdownField dropdown = new DropdownField("Projects", options, 0);
-        dropdown.AddToClassList("truncate");
-        //dropdown.style.alignSelf = Align.Center;
-
-        dropdown.RegisterValueChangedCallback(evt =>
-        {
-            int index = options.IndexOf(evt.newValue);
-            if (index >= 0 && Game.AvailableProjects[index].ReputationNeeded <= Game.Reputation)
-            {
-                Game.AddProject(Game.AvailableProjects[index]);
-                Game.RemoveProjectFromAvailableProjects(Game.AvailableProjects[index]);
-            }
-        });
-
-        Game.OnAvailableProjectsChanged += (projects) =>
-        {
-            options = Game.AvailableProjects
-                .Select(p => $"{p.Name} Diff: {p.Difficulty} Pay: {p.Pay}$ Rep: {p.ReputationNeeded} {(p.ReputationNeeded > Game.Reputation ? "[LOCKED]" : "")}")
-                .ToList();
-
-            dropdown.choices = options;
-
-            if (options.Count > 0)
-                dropdown.index = 0;
-            else
-                dropdown.value = null;
-        };
-
-        navbar.Add(dropdown);
-
-
-        // available workers
-        List<string> woptions = Game.WorkersForHire
-          .Select(p => $"{p.Name}, {p.Skill.ToString()}, {p.Specialty}")
-          .ToList();
-
-        DropdownField wdropdown = new DropdownField("Workers", woptions, 0);
-        wdropdown.AddToClassList("truncate");
-        //wdropdown.style.alignSelf = Align.Center;
-        wdropdown.RegisterValueChangedCallback(evt =>
-        {
-            int index = woptions.IndexOf(evt.newValue);
-            if (index >= 0)
-            {
-                Game.AddWorker(Game.WorkersForHire[index]);
-                Game.RemoveWorkerFromHirePool(Game.WorkersForHire[index]);
-            }
-        });
-
-        Game.OnAvailableWorkersChanged += (workers) =>
-        {
-            wdropdown.choices = workers
-               .Select(p => $"{p.Name}, {p.Skill}, {p.Specialty}")
-               .ToList();
-
-            if (wdropdown.choices.Count > 0)
-                wdropdown.index = 0;
-            else
-                wdropdown.value = null;
-        };
-
-        navbar.Add(wdropdown);
-
 
         Label fundsLabel = new Label($"Funds: {Game.Money}$");
         Game.OnMoneyChanged += (money) => fundsLabel.text = $"Funds: {Game.Money}$";
@@ -168,26 +175,22 @@ public class UIManager : MonoBehaviour
         
         vTimeContainer.Add(timeScaleLabel);
 
-        Button btnDown = new Button()
-        {
-            text = "0.5x",
-        };
+        Button btnDown = new Button();
+        SetButtonIcon(btnDown, Icons[55], "");
+
         btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
 
         hTimeContainer.Add(btnDown);
 
-        Button btnUp = new Button()
-        {
-            text = "2x",
-        };
+        Button btnUp = new Button();
         btnUp.clicked += () => Game.SetTimeScale(Game.TimeScale * 2);
+        SetButtonIcon(btnUp, Icons[56], "");
 
         hTimeContainer.Add(btnUp);
-        
-        Button btnPause = new Button()
-        {
-            text = "Pause",
-        };
+
+        Button btnPause = new Button();
+        SetButtonIcon(btnPause, Icons[88],"");
+
         btnPause.clicked += () => Game.TogglePaused();
 
         hTimeContainer.Add(btnPause);
@@ -195,7 +198,107 @@ public class UIManager : MonoBehaviour
         vTimeContainer.Add(hTimeContainer);
     }
 
+    private void SetButtonIcon(Button btn, Sprite sprite, string text)
+    {
+        btn.text = string.Empty;
+        // Create the container for the button content
+        VisualElement buttonContent = new VisualElement();
+        buttonContent.style.flexDirection = FlexDirection.Row; // Align items horizontally
+        buttonContent.style.alignItems = Align.Center; // Center the icon and label vertically
 
+        // Create the Image element for the icon
+        Image iconImage = new Image();
+        iconImage.sprite = sprite;
+        iconImage.style.width = 24;  // Set the width of the icon (adjust as needed)
+        iconImage.style.height = 24; // Set the height of the icon (adjust as needed)
+
+        // Create the Label for the button's text
+        
+        Label buttonLabel = new Label(text);
+
+        // Add the icon and label to the container
+        buttonContent.Add(iconImage);
+        if(!string.IsNullOrEmpty(text))buttonContent.Add(buttonLabel);
+
+        // Set the content of the button to be the container with the icon and label
+        btn.Clear();  // Remove any existing content
+        btn.Add(buttonContent);  // Add the new container with both icon and label
+    }
+
+
+
+
+    private void NewBuyableUI(Buyable buyable)
+    {
+        var elements = new List<VisualElement>();
+
+        Image imgPortrait = new()
+        {
+            //sprite = buyable.Icon,
+            sprite = Icons[93],
+        };
+        imgPortrait.AddToClassList("portrait");
+
+        elements.Add(imgPortrait);
+
+        Label idLabel = new Label($"WorkerID: {buyable.Id}");
+        Label nameLabel = new Label($"Name: {buyable.Name}");
+        Label descriptionLabel = new Label($"Description: {TextWrap.WrapText(buyable.Description,30)}");
+        Label costLabel = new Label($"Cost: {buyable.Cost}$");
+        Label reputationLabel = new Label($"Reputation needed: {buyable.ReputationNeeded}");
+
+        //elements.Add(idLabel);
+        elements.Add(nameLabel);
+        elements.Add(descriptionLabel);
+        elements.Add(costLabel);
+        elements.Add(reputationLabel);
+
+
+
+        bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
+        costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+        reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+
+        Button btnSubmit = new()
+        {
+            text = "Buy!",
+        };
+        btnSubmit.clicked += () =>
+        {
+            buyable.OnPurchased(buyable,Game);
+        };
+        btnSubmit.SetEnabled(canBuy);
+
+        elements.Add(btnSubmit);
+
+        Game.OnMoneyChanged += (money) =>
+        {
+            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
+            costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            btnSubmit.SetEnabled(canBuy);
+        };
+        Game.OnReputationChanged += (rep) =>
+        {
+            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
+            costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            btnSubmit.SetEnabled(canBuy);
+        };
+
+        var window = new WindowUI(buyable.Name, Icons[84], elements, Vector2.zero,false);
+
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
+        window.Q<VisualElement>("window").style.position = Position.Relative;
+
+        window.AddToClassList("buyable-window");
+
+        shopContent.Add(window);
+    }
     private void NewProjectUI(Project project)
     {
         var projectIndex = Game.Projects.IndexOf(project);
@@ -209,11 +312,12 @@ public class UIManager : MonoBehaviour
             highValue = 100,
             tooltip = "Progress"
         };
+        pBar.Q<Label>(className: "unity-progress-bar__title").text = "Progress";
         var pBarFill = pBar.Q(className: "unity-progress-bar__progress");
         pBarFill.style.backgroundColor = ProgressBarColors.Green;
 
         project.OnProgressChanged += (value) => pBar.value = value;
-    
+
 
         ProgressBar dlBar = new ProgressBar()
         {
@@ -222,21 +326,24 @@ public class UIManager : MonoBehaviour
             highValue = project.StartDuration,
             tooltip = "Deadline"
         };
-
+        dlBar.Q<Label>(className: "unity-progress-bar__title").text = "Deadline";
         var dlBarFill = dlBar.Q(className: "unity-progress-bar__progress");
         dlBarFill.style.backgroundColor = ProgressBarColors.Red;
 
         project.OnDurationChanged += (value) => dlBar.value = value;
 
         Label idLabel = new Label($"ProjectID: {project.Id}");
-        Label descLabel = new Label($"Description: {project.Description}");
+        Label descLabel = new Label($"Description: {TextWrap.WrapText(project.Description, 30)}");
         Label diffLabel = new Label($"Difficulty: {project.Difficulty}");
         Label durationLabel = new Label($"Duration: {project.StartDuration:F1}");
         Label payLabel = new Label($"Pay: {project.Pay}");
         Label statusLabel = new Label($"Status: {project.Status}");
         Label tasksLeftLabel = new Label($"Tasks left: {project.Tasks.Count}");
 
-        elements.Add(idLabel);
+        VisualElement btnContainer = new VisualElement();
+
+
+        //elements.Add(idLabel);
         elements.Add(descLabel);
         elements.Add(diffLabel);
         elements.Add(durationLabel);
@@ -254,86 +361,183 @@ public class UIManager : MonoBehaviour
         elements.Add(dlBar);
         elements.Add(pBar);
 
+        elements.Add(btnContainer);
+
+        UpdateProjectButtons(project, btnContainer);
+        
+        project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
+
+        var window = new WindowUI(project.Name, Icons[36], elements, new Vector2((projectIndex * 100) + 50, projectIndex * 100));
+        window.AddToClassList("project-window");
+
+        workContent.Add(window);
+    }
+
+    void UpdateProjectButtons(Project project, VisualElement container)
+    {
+        container.Clear();
+
+        Button btn = new()
+        {
+            text = project.Status == "failed" || project.Status == "paid out" ? "Remove!" : "Ship it!"
+        };
+
+        btn.clicked += () =>
+        {
+            if (project.Status == "failed" || project.Status == "paid out")
+                Game.RemoveProject(project);
+            else
+                project.TurnInProject();
+        };
+
+        container.Add(btn);
+    }
+
+    private void NewAvailableProjectUI(Project project)
+    {
+        var projectIndex = Game.Projects.IndexOf(project);
+
+        var elements = new List<VisualElement>();
+
+
+        Label idLabel = new Label($"ProjectID: {project.Id}");
+        Label descLabel = new Label($"Description: {TextWrap.WrapText(project.Description,30)}");
+        Label diffLabel = new Label($"Difficulty: {project.Difficulty}");
+        Label durationLabel = new Label($"Duration: {project.StartDuration:F1}");
+        Label payLabel = new Label($"Pay: {project.Pay}");
+        Label statusLabel = new Label($"Status: {project.Status}");
+        Label tasksLeftLabel = new Label($"Tasks left: {project.Tasks.Count}");
+        Label repGainLabel = new Label($"Reputation gain: {project.ReputationGain}");
+        Label repNeededLabel = new Label($"Reputation needed: {project.ReputationNeeded}");
+
+        //elements.Add(idLabel);
+        elements.Add(descLabel);
+        elements.Add(diffLabel);
+        elements.Add(durationLabel);
+        elements.Add(payLabel);
+        elements.Add(tasksLeftLabel);
+        elements.Add(repGainLabel);
+        elements.Add(repNeededLabel);
+
+
+        bool canTakeOn = Game.Reputation >= project.ReputationNeeded;
+        repNeededLabel.style.color = canTakeOn? new StyleColor(Color.green): new StyleColor(Color.red);
+        
         Button btnSubmit = new()
         {
-            text = "Ship it!",
+            text = "Take on!",
         };
         btnSubmit.clicked += () =>
         {
-            project.TurnInProject();
+            Game.AddProject(project);
+            Game.RemoveProjectFromAvailableProjects(project);
         };
+        btnSubmit.SetEnabled(canTakeOn);
 
         elements.Add(btnSubmit);
+
+        var window = new WindowUI(project.Name, Icons[36], elements, Vector2.zero,false);
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
         
-        workContent.Add(new WindowUI(project.Name, Icons[36], elements, new Vector2(projectIndex * 100, projectIndex * 100)));
+        window.Q<VisualElement>("window").style.position = Position.Relative;
+
+        window.AddToClassList("available-project-window");
+
+        projectsContent.Add(window);
     }
     private void NewTaskUI(Task task)
     {
-        int taskIndex = 0;
-
-        var project = Game.Projects.FirstOrDefault(p => p.Tasks.Contains(task));
-        if (project != null)
-        {
-            taskIndex = project.Tasks.IndexOf(task);
-            // Use project and taskIndex as needed
-        }
+        int taskIndex = task.Project.Tasks.IndexOf(task);
 
         var elements = new List<VisualElement>();
 
         Label idLabel = new Label($"TaskID: {task.Id}");
+        Label projectLabel = new Label($"Project: {task.Project.Name}");
         Label descLabel = new Label($"Description: {TextWrap.WrapText(task.Description,30)}");
         Label diffLabel = new Label($"Difficulty: {task.Difficulty}");
         Label priorityLabel = new Label($"Priority: {task.Priority}");
         Label specLabel = new Label($"Speciality: {task.Specialty.Name}");
         Label statusLabel = new Label($"Status: {task.Status}");
-        Label workersLabel = new Label($"Assigned workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
+        Label assignedWorkersLabel = new Label($"Assigned workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
+        Label assignWorkersLabel = new Label($"Assign workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
 
-        elements.Add(idLabel);
+        VisualElement assignableWorkerContainer = new VisualElement();
+        assignableWorkerContainer.name = "workerContainer";
+        assignableWorkerContainer.style.flexDirection = FlexDirection.Row;
+        
+        VisualElement assignedWorkersContainer = new VisualElement();
+        assignedWorkersContainer.name = "assignedWorkersContainer";
+        assignedWorkersContainer.style.flexDirection = FlexDirection.Row;
+
+
+        //elements.Add(idLabel);
+        elements.Add(projectLabel);
         elements.Add(descLabel);
         elements.Add(diffLabel);
         elements.Add(priorityLabel);
         elements.Add(specLabel);
         elements.Add(statusLabel);
-        elements.Add(workersLabel);
 
-        // Keep actual worker references
-        List<Worker> availableWorkers = Game.Workers
-            .Where(w => w.Task == null)
-            .ToList();
+        elements.Add(assignedWorkersLabel);
+        elements.Add(assignedWorkersContainer);
 
-        // available workers
-        List<string> woptions = availableWorkers
-            .Where(w => w.Task == null)
-            .Select(p => $"{p.Name}, {p.Skill}, {p.Specialty.Name}")
-            .ToList();
-
-        DropdownField wdropdown = new ("Assign worker", woptions, -1);
+        elements.Add(assignWorkersLabel);
+        elements.Add(assignableWorkerContainer);
 
 
-        wdropdown.RegisterValueChangedCallback(evt =>
+        List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
+        List<Worker> assignedWorkers = task.Workers.ToList();
+        UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
+        Game.OnNewWorker += (_worker) =>
         {
-            int index = woptions.IndexOf(evt.newValue);
-            if (index >= 0 && index < availableWorkers.Count)
+            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
+            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
+            List<Worker> assignedWorkers = task.Workers.ToList();
+            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
+        };
+        Game.OnWorkerAssigned += (_worker) =>
+        {
+            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
+            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
+            List<Worker> assignedWorkers = task.Workers.ToList();
+            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
+        };
+
+        Game.OnWorkerFreed += (_worker) =>
+        {
+            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
+            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
+            List<Worker> assignedWorkers = task.Workers.ToList();
+            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
+        };
+
+
+        task.OnStatusChanged += (status) =>
+        {
+            statusLabel.text = $"Status: {status}";
+
+            if (status == "failed" || status == "completed")
             {
-                Worker selectedWorker = availableWorkers[index];
-                task.AssignWorker(selectedWorker);
+                if (assignableWorkerContainer.parent != null)
+                    assignableWorkerContainer.RemoveFromHierarchy();
+                
+                if (assignedWorkersLabel.parent != null)
+                    assignedWorkersLabel.RemoveFromHierarchy();
+
+                if (assignedWorkersContainer.parent != null)
+                    assignedWorkersContainer.RemoveFromHierarchy();
+                
+                if (assignWorkersLabel.parent != null)
+                    assignWorkersLabel.RemoveFromHierarchy();
             }
-        });
-
-        Game.OnNewWorker += (worker)=> SetupWorkerDropdown(wdropdown,task);
-        Game.OnWorkerAssigned += (worker)=> SetupWorkerDropdown(wdropdown,task);
-        Game.OnWorkerFreed += (worker)=> SetupWorkerDropdown(wdropdown,task);
-
-        elements.Add(wdropdown);
-        // Bind update events
-        //task.OnDescriptionChanged += val => descLabel.text = $"Description: {val}";
-        //task.OnDifficultyChanged += val => diffLabel.text = $"Difficulty: {val}";
-        //task.OnPriorityChanged += val => priorityLabel.text = $"Priority: {val}";
-        //task.OnSpecialtyChanged += val => specLabel.text = $"Speciality: {val}";
-        task.OnStatusChanged += val => statusLabel.text = $"Status: {val}";
+        };
         task.OnWorkersChanged += (workers) =>
         {
-            workersLabel.text = $"Assigned workers: {string.Join(", ", workers.Select(w => w.Name))}";
+            assignedWorkersLabel.text = $"Assigned workers: {string.Join(", ", workers.Select(w => w.Name))}";
         };
 
 
@@ -342,52 +546,103 @@ public class UIManager : MonoBehaviour
             value = task.Progress,
             lowValue = 0,
             highValue = 100,
-            tooltip = "Progress"
+            tooltip = "Progress",
         };
+        pBar.Q<Label>(className: "unity-progress-bar__title").text = "Progress";
+
         var pBarFill = pBar.Q(className: "unity-progress-bar__progress");
         pBarFill.style.backgroundColor = ProgressBarColors.Green;
 
         task.OnProgressChanged += (progress) => pBar.value = progress;
 
         elements.Add(pBar);
-        workContent.Add(new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 100) + 400, taskIndex * 100)));
+
+        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 200) + 450, /*taskIndex * 100*/ 0));
+
+        window.AddToClassList("task-window");
+
+        workContent.Add(window);
     }
-    private Dictionary<DropdownField, EventCallback<ChangeEvent<string>>> dropdownCallbacks = new();
 
-    private void SetupWorkerDropdown(DropdownField dropdown, Task task)
+    private static void UpdateAssignableWorkers(Task task, VisualElement assignableWorkersContainer, List<Worker> availableWorkers)
     {
-        // Get available workers
-        List<Worker> availableWorkers = Game.Workers
-            .Where(w => w.Task == null)
-            .ToList();
-
-        List<string> options = availableWorkers
-            .Select(w => $"{w.Name}, {w.Skill}, {w.Specialty}")
-            .ToList();
-
-        // Remove existing callback if one is registered
-        if (dropdownCallbacks.TryGetValue(dropdown, out var oldCallback))
+        assignableWorkersContainer.Clear();
+        foreach (Worker worker in availableWorkers)
         {
-            dropdown.UnregisterValueChangedCallback(oldCallback);
-            dropdownCallbacks.Remove(dropdown);
-        }
-
-        // Update dropdown
-        dropdown.choices = options;
-        dropdown.index = -1;
-
-        // Create new callback
-        EventCallback<ChangeEvent<string>> callback = evt =>
-        {
-            int index = options.IndexOf(evt.newValue);
-            if (index >= 0 && index < availableWorkers.Count)
+            Button assignButton = new Button
             {
-                task.AssignWorker(availableWorkers[index]);
-            }
-        };
+                style =
+                {
+                    width = 50,
+                    height = 50,
+                    paddingLeft = 0,
+                    paddingRight = 0,
+                    paddingTop = 0,
+                    paddingBottom = 0,
+                }
+            };
 
-        dropdown.RegisterValueChangedCallback(callback);
-        dropdownCallbacks[dropdown] = callback;
+            Image portrait = new Image
+            {
+                sprite = worker.Portrait,
+                scaleMode = ScaleMode.ScaleToFit,
+                style = 
+                    {
+                        flexGrow = 1,
+                        width = 50,
+                        height = 50,
+                    }
+            };
+
+            assignButton.Add(portrait);
+
+            assignButton.clicked += () =>
+            {
+                task.AssignWorker(worker);
+            };
+
+            assignableWorkersContainer.Add(assignButton);
+        }
+    }
+    private static void UpdateAssignedWorkers(Task task, VisualElement assignableWorkersContainer, List<Worker> assignedWorkers)
+    {
+        assignableWorkersContainer.Clear();
+        foreach (Worker worker in assignedWorkers)
+        {
+            Button assignButton = new Button
+            {
+                style =
+                {
+                    width = 50,
+                    height = 50,
+                    paddingLeft = 0,
+                    paddingRight = 0,
+                    paddingTop = 0,
+                    paddingBottom = 0,
+                }
+            };
+
+            Image portrait = new Image
+            {
+                sprite = worker.Portrait,
+                scaleMode = ScaleMode.ScaleToFit,
+                style = 
+                {
+                    flexGrow = 1,
+                    width = 50,
+                    height = 50,
+                }
+            };
+
+            assignButton.Add(portrait);
+
+            assignButton.clicked += () =>
+            {
+                task.RemoveWorker(worker);
+            };
+
+            assignableWorkersContainer.Add(assignButton);
+        }
     }
 
 
@@ -415,7 +670,7 @@ public class UIManager : MonoBehaviour
         Label statusLabel = new Label($"Status: {worker.Status}");
         Label taskLabel = new Label($"Task: {worker.Task?.Name}");
 
-        elements.Add(idLabel);
+        //elements.Add(idLabel);
         elements.Add(levelLabel);
         elements.Add(xpLabel);
         elements.Add(nextXpLabel);
@@ -441,6 +696,8 @@ public class UIManager : MonoBehaviour
             highValue = 100,
             tooltip = "Health"
         };
+        var hbl = hBar.Q<Label>(className: "unity-progress-bar__title").text = "Health"; ;
+
 
         var hBarFill = hBar.Q(className: "unity-progress-bar__progress");
         hBarFill.style.backgroundColor = ProgressBarColors.Red;
@@ -456,6 +713,7 @@ public class UIManager : MonoBehaviour
             highValue = 100,
             tooltip = "Stress"
         };
+        sBar.Q<Label>(className: "unity-progress-bar__title").text = "Stress";
 
         var sBarFill = sBar.Q(className: "unity-progress-bar__progress");
         sBarFill.style.backgroundColor = ProgressBarColors.Yellow;
@@ -470,6 +728,8 @@ public class UIManager : MonoBehaviour
             highValue = 100,
             tooltip = "Efficiency"
         };
+        eBar.Q<Label>(className: "unity-progress-bar__title").text = "Efficiency";
+
         var eBarFill = eBar.Q(className: "unity-progress-bar__progress");
         eBarFill.style.backgroundColor = ProgressBarColors.Cyan;
 
@@ -477,15 +737,82 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        workContent.Add(new WindowUI(worker.Name, Icons[20], elements, new Vector2(workerIndex * 100, (workerIndex * 100) + 600)));
+        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2((workerIndex * 200) + 50, /*(workerIndex * 100) + */600));
+
+        window.AddToClassList("worker-window");
+
+        workContent.Add(window);
+    }
+    private void NewAvailableWorkerUI(Worker worker)
+    {
+        var workerIndex = Game.Workers.IndexOf(worker);
+
+        var elements = new List<VisualElement>();
+
+        Image imgPortrait = new()
+        {
+            sprite = worker.Portrait,
+        };
+        imgPortrait.AddToClassList("portrait");
+
+        elements.Add (imgPortrait);
+
+        Label idLabel = new Label($"WorkerID: {worker.Id}");
+        Label levelLabel = new Label($"Level: {worker.Level}");
+        Label xpLabel = new Label($"Current xp: {worker.Xp}");
+        Label nextXpLabel = new Label($"Next xp: {worker.NextXp}");
+        Label skillLabel = new Label($"Skill: {worker.Skill}");
+        Label specialtyLabel = new Label($"Speciality: {worker.Specialty.Name}");
+        
+        Label hireCostLabel = new Label($"Cost: {worker.HiringCost}$");
+
+        //elements.Add(idLabel);
+        elements.Add(levelLabel);
+        elements.Add(xpLabel);
+        elements.Add(nextXpLabel);
+        elements.Add(skillLabel);
+        elements.Add(specialtyLabel);
+        elements.Add(hireCostLabel);
+
+
+        bool canHire = Game.Money >= worker.HiringCost;
+        hireCostLabel.style.color = canHire ? new StyleColor(Color.green) : new StyleColor(Color.red);
+
+        Button btnSubmit = new()
+        {
+            text = "Hire!",
+        };
+        btnSubmit.clicked += () =>
+        {
+            Game.AddWorker(worker);
+            Game.RemoveWorkerFromHirePool(worker);
+        };
+        btnSubmit.SetEnabled(canHire);
+
+        elements.Add(btnSubmit);
+
+
+
+        var window = new WindowUI(worker.Name, Icons[20], elements, Vector2.zero);
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
+        window.Q<VisualElement>("window").style.position = Position.Relative;
+
+        window.AddToClassList("available-worker-window");
+
+        staffingContent.Add(window);
     }
 
     private void NewMessageBox(string message, Color color)
     {
         Debug.Log("New message: " +  message);
+        string time = DateTime.Now.ToString("HH:mm:ss");
         var label = new Label()
         {
-            text = message,
+            text = $"{time} - {message}",
             style =
             {
                 color = color,

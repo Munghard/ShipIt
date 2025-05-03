@@ -1,22 +1,26 @@
 <engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <engine:Template name="WorkPage" src="project://database/Assets/Scripts/UI/WorkPage.uxml?fileID=9197481963319205126&amp;guid=e0ccede1c5baa854096811c479c44738&amp;type=3#WorkPage" />
-    <engine:Template name="HiringPage" src="project://database/Assets/Scripts/UI/HiringPage.uxml?fileID=9197481963319205126&amp;guid=8cccaf1d7e9042741b0831d31d47d060&amp;type=3#HiringPage" />
+    <engine:Template name="StaffingPage" src="project://database/Assets/Scripts/UI/StaffingPage.uxml?fileID=9197481963319205126&amp;guid=8cccaf1d7e9042741b0831d31d47d060&amp;type=3#StaffingPage" />
     <engine:Template name="ProjectsPage" src="project://database/Assets/Scripts/UI/ProjectsPage.uxml?fileID=9197481963319205126&amp;guid=d7960050d41433c48b98fb539ea0535b&amp;type=3#ProjectsPage" />
+    <engine:Template name="ShopPage" src="project://database/Assets/Scripts/UI/ShopPage.uxml?fileID=9197481963319205126&amp;guid=d10ca0137d2785d47aa5a0be3ee9ce2b&amp;type=3#ShopPage" />
     <Style src="project://database/Assets/Scripts/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
     <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
         <engine:VisualElement name="navbar" style="flex-grow: 0; align-items: flex-start; right: auto; position: relative; top: auto; left: auto; max-width: 400px; overflow: visible; opacity: 1;">
-            <engine:Label text="SHIP IT!" name="lblTitle" class="Title" style="-unity-font-style: bold; text-shadow: 0 3px 5px rgb(0, 0, 0); border-bottom-width: 5px; border-bottom-color: rgb(79, 163, 217); border-top-left-radius: 27px; border-top-right-radius: 27px; border-bottom-right-radius: 27px; border-bottom-left-radius: 27px;" />
+            <engine:Label text="SHIP IT!" name="lblTitle" class="Title" style="-unity-font-style: bold; text-shadow: 0 3px 5px rgb(0, 0, 0);" />
             <engine:Button text="New game" name="btnNewGame" />
         </engine:VisualElement>
         <engine:TabView style="flex-grow: 1; flex-direction: column;">
             <engine:Tab label="Work">
                 <engine:Instance template="WorkPage" name="TemplateContainer" class="page" />
             </engine:Tab>
-            <engine:Tab label="Hiring" name="Tab">
-                <engine:Instance template="HiringPage" name="TemplateContainer" class="page" />
+            <engine:Tab label="Staffing">
+                <engine:Instance template="StaffingPage" name="TemplateContainer" class="page" />
             </engine:Tab>
             <engine:Tab label="Projects">
                 <engine:Instance template="ProjectsPage" class="page" />
+            </engine:Tab>
+            <engine:Tab label="Shop">
+                <engine:Instance template="ShopPage" class="page" />
             </engine:Tab>
         </engine:TabView>
         <engine:VisualElement name="messagebox" style="flex-grow: 1; position: absolute; bottom: 0; right: 0; left: auto; top: auto; height: 400px; width: 400px; opacity: 0.5;">

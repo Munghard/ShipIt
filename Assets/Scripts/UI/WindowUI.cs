@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class WindowUI : VisualElement
 {
 
-    public WindowUI(string headerText,Sprite sprite, List<VisualElement> elements, Vector2 position)
+    public WindowUI(string headerText,Sprite sprite, List<VisualElement> elements, Vector2 position, bool draggable = true)
     {
         // Load the UXML file and clone it
         var visualTree = Resources.Load<VisualTreeAsset>("UI/WindowUI");
@@ -73,7 +73,7 @@ public class WindowUI : VisualElement
             };
         }
 
-        Draggable.MakeDraggable(this);
+        if(draggable) Draggable.MakeDraggable(this);
     }
 
 }

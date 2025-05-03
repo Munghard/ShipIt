@@ -85,6 +85,17 @@ public class Task
         OnCompleted?.Invoke(this);
         Project.CompleteTask(this);
     }
+    public void Fail()
+    {
+        SetStatus("failed");
+        Game.textPop.New("Task failed..", GetWindowCenter(), Color.red);
+
+        for (int i = Workers.Count - 1; i >= 0; i--)
+        {
+            var worker = Workers[i];
+            RemoveWorker(worker);
+        }
+    }
     public void UpdateTask()
     {
         float deltaTime = Time.deltaTime;

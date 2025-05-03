@@ -40,11 +40,11 @@ color: var(--background);
 height: auto;
 font-size: 20px;
 font-weigth: 800;
-border-radius: 5px 5px 0px 0px;
+border-radius: 10px 10px 0px 0px;
 border-color: var(--border);
-border-width: 4px;
+border-width: 4px 4px 0 4px;
 
-margin: 10px;
+margin: 0 10px  0 0;
 
 /* flex-grow: 0; */
 /* flex-shrink: 1; */
@@ -103,6 +103,7 @@ DropdownField{
     /* margin: 10px; */
 }
 .unity-progress-bar__background {
+    background-color:var(--navbar);
     border-radius: 8px;
 }
 .unity-progress-bar__progress {

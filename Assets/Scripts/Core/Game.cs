@@ -21,7 +21,6 @@ public class Game
     public WorkerGenerator workerGenerator;
 
     public System.Action<Project> OnNewProject;
-    public System.Action<Task> OnNewTask;
     
     public System.Action<Worker> OnNewWorker;
     public System.Action<Worker> OnWorkerAssigned;
@@ -32,6 +31,8 @@ public class Game
     public System.Action<float> OnReputationChanged;
 
     public System.Action<float> OnTimeScaleChanged;
+
+    public System.Action<List<Project>> OnProjectsChanged;
 
     public System.Action<List<Project>> OnAvailableProjectsChanged;
     public System.Action<List<Worker>> OnAvailableWorkersChanged;
@@ -54,6 +55,9 @@ public class Game
         WorkersForHire = new List<Worker>();
         SetMoney(1000);
         SetReputation(50);
+
+        RollWorkersForHire(3);
+        RollProjects(3);
 
         var project = new Project(this, "Starting project", "Your first project.", 1, 3000);
         var worker = new Worker("Willy Worker",workerGenerator.GetRandomPortrait(), Specialty.Get("General"), 1, 100, project, this);
@@ -106,8 +110,6 @@ public class Game
     {
         iconManager.Load();
         workerGenerator.Load();
-        RollWorkersForHire(3);
-        RollProjects(3);
         textPop.New("Welcome to the game!", new Vector2(Screen.width / 2, Screen.height / 2), Color.white);
     }
 
@@ -187,12 +189,14 @@ public class Game
     public void RemoveProject(Project project)
     {
         Projects.Remove(project);
+        OnProjectsChanged.Invoke(Projects);
     }
 
     public void AddProject(Project project)
     {
         Projects.Add(project);
         OnNewProject?.Invoke(project);
+        OnProjectsChanged?.Invoke(Projects);
         Debug.Log($"{project.Name} added to active projects.");
     }
 
@@ -209,7 +213,7 @@ public class Game
         
         ScaledDeltaTime = dt * TimeScale;
 
-        Time.timeScale = TimeScale;
+        Time.timeScale = TimeScale * 0.1f;
         PlayerInput.UpdateInput();
 
         if (Paused) return;

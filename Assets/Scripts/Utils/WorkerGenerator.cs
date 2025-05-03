@@ -21,7 +21,6 @@ public class WorkerGenerator
 
     public void Load()
     {
-
         AllSprites = Resources.LoadAll<Sprite>("textures/Portraits").ToList();
         Sprites.AddRange(AllSprites); 
         Debug.Log("Portraits loaded: " + AllSprites.Count);
@@ -29,9 +28,10 @@ public class WorkerGenerator
 
     public Sprite GetRandomPortrait()
     {
-        var _sprite = Sprites[Random.Range(0, AllSprites.Count)];
-        Sprites.Remove(_sprite);
-        return _sprite;
+        int index = Random.Range(0, Sprites.Count);
+        Sprite selected = Sprites[index];
+        Sprites.RemoveAt(index);
+        return selected;
     }
 
     public string GenerateRandomName()

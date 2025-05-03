@@ -28,6 +28,7 @@ public class Project
     public System.Action<float> OnProgressChanged;
     public System.Action<float> OnDurationChanged;
     public System.Action<List<Task>> OnTasksChanged;
+    public System.Action<Task> OnNewTask;
     public System.Action<string> OnStatusChanged;
     public System.Action<Project> OnCompleted;
     public System.Action<Project> OnFailed;
@@ -47,7 +48,6 @@ public class Project
         Status = "pending";
         Icon = game.iconManager.GetIcon(32).SheetTexture;
         CreateTasks();
-        game.textPop.New("New project!", GetWindowCenter(), new Color(0.5f, 0.5f, 0.0f));
     }
     private void SetStatus(string status)
     {
@@ -57,22 +57,30 @@ public class Project
     private void CreateTasks()
     {
         List<Task> allTasks = TaskLibrary.GetMainTasks().ToList();
-        foreach (var def in allTasks)
+
+        // Set max task count proportional to Difficulty
+        int maxTasks = Mathf.Clamp((int)Difficulty * 2, 1, allTasks.Count); // e.g. 2–10 tasks
+
+        int tasksCreated = 0;
+
+        foreach (var def in allTasks.OrderBy(_ => UnityEngine.Random.value))
         {
-            if (UnityEngine.Random.value * Difficulty > 0.8f)
-            {
-                var task = new Task(def.Name, def.Description, def.Difficulty, def.Specialty, def.TimeToComplete, this, "pending", Tasks.Count + 1);
-                AddTask(task);
-            }
+            if (tasksCreated >= maxTasks)
+                break;
+
+            var task = new Task(def.Name, def.Description, def.Difficulty, def.Specialty, def.TimeToComplete, this, "pending", Tasks.Count + 1);
+            AddTask(task);
+            tasksCreated++;
         }
     }
+
 
     public void AddTask(Task task)
     {
         Tasks.Add(task);
         StartingTasks++;
         TasksChanged();
-        Game.OnNewTask?.Invoke(task);
+        OnNewTask?.Invoke(task);
         OnTasksChanged?.Invoke(Tasks);
     }
 
@@ -123,12 +131,12 @@ public class Project
 
     public void FailProject()
     {
-        Status = "failed";
+        SetStatus("failed");
         Game.textPop.New("Project failed...", GetWindowCenter(), Color.red);
 
         foreach (var task in Tasks)
         {
-            task.Status = "failed";
+            task.Fail();
             Game.textPop.New("Task failed!", task.GetWindowCenter(), Color.red);
 
             foreach (var worker in task.Workers)
@@ -141,6 +149,11 @@ public class Project
         {
             worker.IncreaseStress(50);
         }
+
+
+        Game.SpendMoney(Pay / 4);
+        Game.ReduceReputation(ReputationGain / 4);
+
         OnFailed?.Invoke(this);
     }
     public void TurnInProject()
@@ -151,28 +164,29 @@ public class Project
         {
             // get paid
             // get rep
-            Game.GainMoney(Pay);
-            Game.GainReputation(ReputationGain);
             CompleteProject();
         }
         else
         {
             // dont get paid // get a fine 25%
             // suffer rep damage 25%
-            Game.SpendMoney(Pay / 4);
-            Game.ReduceReputation(ReputationGain / 4);
             FailProject();
         }
     }
     public void CompleteProject()
     {
-        SetStatus("completed");
         Game.textPop.New("Project completed!", GetWindowCenter(), Color.green);
 
         foreach (var worker in Game.Workers)
         {
             worker.DecreaseStress(50);
         }
+
+        Game.GainMoney(Pay);
+        Game.GainReputation(ReputationGain);
+        
+        SetStatus("paid out");
+
         OnCompleted?.Invoke(this);
     }
     public void UpdateProject()

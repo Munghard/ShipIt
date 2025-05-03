@@ -18,6 +18,7 @@ public class Worker
     public string Status;
     public int TasksCompleted;
     public int TasksFailed;
+    public int HiringCost => Level * 100;
 
     public Sprite Portrait;
 
@@ -194,7 +195,7 @@ public class Worker
 
         if (Occupied && Task.Status != "completed")
         {
-            float stressIncrease = (Task.Difficulty / Skill) * deltaTime;
+            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 10;
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
         }
@@ -213,5 +214,16 @@ public class Worker
         {
             IncreaseHealth(deltaTime / 10f);
         }
+    }
+
+    internal void IncreaseSkill(int amount)
+    {
+        Skill += amount;
+        OnSkillChanged(Skill);
+    }
+    internal void DecreaseSkill(int amount)
+    {
+        Skill -= amount;
+        OnSkillChanged(Skill);
     }
 }
