@@ -1,6 +1,4 @@
-﻿using UnityEditor.PackageManager.UI;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UIElements;
 
 public static class Draggable

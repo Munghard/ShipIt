@@ -4,14 +4,9 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.PackageManager.UI;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static UnityEngine.GridBrushBase;
 
 public class UIManager : MonoBehaviour
 {
