@@ -3,7 +3,7 @@
     <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1;">
             <engine:Label text="Projects" parse-escape-sequences="false" name="pageHeader" style="font-size: 60px; -unity-font-style: bold; border-top-width: 20px; border-right-width: 20px; border-bottom-width: 20px; border-left-width: 20px;" />
-            <engine:VisualElement name="projectsContent" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
+            <engine:VisualElement name="availableProjectsContent" class="content" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
         </engine:VisualElement>
     </engine:VisualElement>
 </engine:UXML>

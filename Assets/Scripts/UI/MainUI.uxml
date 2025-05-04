@@ -2,12 +2,16 @@
     <engine:Template name="WorkPage" src="project://database/Assets/Scripts/UI/WorkPage.uxml?fileID=9197481963319205126&amp;guid=e0ccede1c5baa854096811c479c44738&amp;type=3#WorkPage" />
     <engine:Template name="StaffingPage" src="project://database/Assets/Scripts/UI/StaffingPage.uxml?fileID=9197481963319205126&amp;guid=8cccaf1d7e9042741b0831d31d47d060&amp;type=3#StaffingPage" />
     <engine:Template name="ProjectsPage" src="project://database/Assets/Scripts/UI/ProjectsPage.uxml?fileID=9197481963319205126&amp;guid=d7960050d41433c48b98fb539ea0535b&amp;type=3#ProjectsPage" />
-    <engine:Template name="ShopPage" src="project://database/Assets/Scripts/UI/ShopPage.uxml?fileID=9197481963319205126&amp;guid=d10ca0137d2785d47aa5a0be3ee9ce2b&amp;type=3#ShopPage" />
+    <engine:Template name="ShopPage" src="project://database/Assets/Scripts/UI/ShopPage.uxml?fileID=9197481963319205126&amp;guid=a726bd06eb657174a862957ca02eb8a6&amp;type=3#ShopPage" />
     <Style src="project://database/Assets/Scripts/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
     <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
-        <engine:VisualElement name="navbar" style="flex-grow: 0; align-items: flex-start; right: auto; position: relative; top: auto; left: auto; max-width: 400px; overflow: visible; opacity: 1;">
-            <engine:Label text="SHIP IT!" name="lblTitle" class="Title" style="-unity-font-style: bold; text-shadow: 0 3px 5px rgb(0, 0, 0);" />
-            <engine:Button text="New game" name="btnNewGame" />
+        <engine:VisualElement name="navbar" style="flex-grow: 0; align-items: stretch; right: auto; position: relative; top: auto; left: auto; overflow: visible; opacity: 1; width: 20%; min-width: 200px; flex-direction: column; justify-content: flex-start; align-self: stretch;">
+            <engine:Label text="SHIP IT!" name="lblTitle" class="Title" style="-unity-font-style: bold; text-shadow: 0 3px 5px rgb(0, 0, 0); flex-shrink: 1; text-overflow: clip; -unity-text-align: middle-left; white-space: normal; flex-grow: 0; flex-direction: row; margin-top: 16px; margin-right: 16px; margin-bottom: 16px; margin-left: 16px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+            <engine:Button text="New game" name="btnNewGame" style="flex-shrink: 1; align-self: flex-start; margin-top: 16px; margin-right: 16px; margin-bottom: 16px; margin-left: 16px;" />
+            <engine:VisualElement name="messagebox" class="message-box">
+                <engine:Label text="Event log" style="-unity-font-style: bold; overflow: visible;" />
+                <engine:ScrollView name="msgBoxScrollView" />
+            </engine:VisualElement>
         </engine:VisualElement>
         <engine:TabView style="flex-grow: 1; flex-direction: column;">
             <engine:Tab label="Work">
@@ -23,9 +27,5 @@
                 <engine:Instance template="ShopPage" class="page" />
             </engine:Tab>
         </engine:TabView>
-        <engine:VisualElement name="messagebox" style="flex-grow: 1; position: absolute; bottom: 0; right: 0; left: auto; top: auto; height: 400px; width: 400px; opacity: 0.5;">
-            <engine:Label text="Event log" style="-unity-font-style: bold;" />
-            <engine:ScrollView name="msgBoxScrollView" />
-        </engine:VisualElement>
     </engine:VisualElement>
 </engine:UXML>

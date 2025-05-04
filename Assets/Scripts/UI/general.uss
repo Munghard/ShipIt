@@ -1,16 +1,15 @@
 :root {
---primary: #4FA3D9;           /* Calm blue, friendly but modern */
---primary-hover: #2B7CA7;     /* Deeper blue for hover interaction */
---secondary: #88C0D0;         /* Soft cyan for accents or highlights */
---background: #1E1F26;        /* Very dark blue-gray for contrast and comfort */
---window: #2F323E;            /* Slightly lighter panel background */
---header: #3B4252;            /* Muted navy blue, subtle yet distinct */
---header-active: #5E81AC;     /* Desaturated blue with presence */
---text: #ECEFF4;              /* Soft off-white for less eye strain */
---btntext: #D8DEE9;           /* Slightly dimmed white for buttons */
---border: #4C566A;            /* Neutral, low-contrast border */
---navbar: #242630;            /* Slightly raised navbar tone */
-
+    --primary: rgb(79, 163, 217);
+    --primary-hover: rgb(43, 124, 167);
+    --secondary: rgb(136, 192, 208);
+    --background: rgb(30, 31, 38);
+    --window: rgb(47, 50, 62);
+    --header: rgb(59, 66, 82);
+    --header-active: rgb(94, 129, 172);
+    --text: rgb(236, 239, 244);
+    --btntext: rgb(216, 222, 233);
+    --border: rgb(76, 86, 106);
+    --navbar: rgb(36, 38, 48);
 }
 
 Button {
@@ -23,130 +22,131 @@ Button {
     border-color: var(--border);
     border-width: 4px;
     margin: 10px;
-
     flex-grow: 0;
     flex-shrink: 1;
     flex-basis: auto;
     width: auto;
 }
+
 Button:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary);
 }
 
-.unity-tab__header{
-background-color: var(--header);
-color: var(--background);
-height: auto;
-font-size: 20px;
-font-weigth: 800;
-border-radius: 10px 10px 0px 0px;
-border-color: var(--border);
-border-width: 4px 4px 0 4px;
-
-margin: 0 10px  0 0;
-
-/* flex-grow: 0; */
-/* flex-shrink: 1; */
-/* flex-basis: auto; */
-/* width: auto; */
+.unity-tab__header {
+    background-color: var(--header);
+    color: var(--background);
+    height: auto;
+    font-size: 20px;
+    font-weigth: 800;
+    border-radius: 10px 10px 0 0;
+    border-color: var(--border);
+    border-width: 4px 4px 0 4px;
+    margin: 0 10px 0 0;
 }
-.unity-tab__header:hover{
+
+.unity-tab__header:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary);
 }
 
-#pageHeader{
+#pageHeader {
     color: var(--header-active);
 }
-.page{
+
+.page {
     height: 100%;
     grow: 1;
 }
-.unity-tab{
+
+.unity-tab {
     height: 100%;
     grow: 1;
 }
-.unity-tab-view__header-container{
-    padding:20px 0 0 40px;
+
+.unity-tab-view__header-container {
+    padding: 20px 0 0 40px;
     border-width: 0 0 4px 0;
     border-color: var(--border);
 }
-.unity-tab-view__content-container{
-    height:100%;
+
+.unity-tab-view__content-container {
+    height: 100%;
     flex-grow: 1;
 }
-.unity-tab__content-container{
-    height:100%;
+
+.unity-tab__content-container {
+    height: 100%;
     flex-grow: 1;
 }
-.unity-tab__header-underline{
-    display:none;
-    background-color:var(--primary);
+
+.unity-tab__header-underline {
+    display: none;
+    background-color: var(--primary);
 }
-DropdownField{
+
+DropdownField {
     flex-direction: column;
     background-color: var(--header);
     color: var(--background);
-    
     flex-grow: 0;
     flex-shrink: 1;
     flex-basis: auto;
     width: 200px;
-    /* width: 200px; */
-    /* height: 50px; */
-    /* font-size: 20px; */
-    /* color: var(--btntext); */
     border-radius: 5px;
     border-color: var(--border);
     border-width: 4px;
-    /* margin: 10px; */
 }
+
 .unity-progress-bar__background {
-    background-color:var(--navbar);
+    background-color: var(--navbar);
     border-radius: 8px;
 }
+
 .unity-progress-bar__progress {
     border-radius: 8px;
 }
 
 .tile-background {
-    background-image: url("/Assets/Resources/textures/grid.png");
+    background-image: url("project://database/Assets/Resources/textures/grid.png?fileID=2800000&guid=faed36ecf1e594e4a8ccd180140e96b6&type=3#grid");
     background-repeat: repeat;
     background-size: auto;
-    -unity-background-image-tint-color:var(--background);
+    -unity-background-image-tint-color: var(--background);
 }
 
-Label{
+Label {
     font-size: 20px;
     color: var(--text);
-    /* overflow:Hidden; */
-    /* white-space: NoWrap; */
-    /* text-overflow:Ellipsis; */
-    /* margin: 10px; */
 }
 
-#main{
+#main {
     background-color: var(--background);
-    /* padding: 20px; */
 }
-#navbar{
+
+#navbar {
     background-color: var(--navbar);
-    margin:0px;
-    position:absolute;
-    top:0px;
-    left:0px;
-    right:80%;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 80%;
     height: 100%;
-    border-width: 0 4px 0 0 ;
+    border-width: 0 4px 0 0;
     border-color: var(--border);
-    /* padding: 20px; */
 }
-.navbar-label
-{
+
+.navbar-label {
+    font-size: 30px;
+    font-color: gray;
+    /* margin-left: 16px; */
+}
+
+.navbar-label-header {
     font-size: 40px;
+    /* margin: 16px; */
 }
-.Title{
+
+.Title {
     font-size: 60px;
     color: var(--primary);
     -unity-text-align: middle-center;
@@ -157,69 +157,126 @@ Label{
     display: flex;
 }
 
-     /* window stuff */
-#window{
+
+#window {
     background-color: var(--window);
     opacity: 0.95;
     border-width: 4px;
     border-color: var(--border);
-    border-radius:8px;
+    border-radius: 8px;
 }
-#window:hover{
+
+#window:hover {
     border-color: white;
-    transition: all 0.3s ease; /* Transition all properties over 0.3 seconds with an ease timing function */
+    transition: all 0.3s ease;
 }
-#header{
-    /* background-color: var(--header); */
+
+#header {
     border-width: 0 0 4px 0;
     border-color: var(--border);
-    display:flex;
-
+    display: flex;
 }
-#lblHeader{
+
+#lblHeader {
     font-size: 30px;
-    color:var(--text);
+    color: var(--text);
     -unity-text-align: middle-center;
 }
-#content{
+
+#content {
     padding: 20px;
 }
 
-#messagebox{
+#messagebox {
     background-color: var(--window);
     border-width: 4px;
     border-color: var(--border);
     padding: 20px;
     margin: 20px;
     flex-direction: column;
-    border-radius:8px;
+    border-radius: 8px;
 }
 
-
 .header-default {
-    background-color:var(--header);
+    background-color: var(--header);
 }
 
 .header-active {
-    background-color:var(--header-active);
+    background-color: var(--header-active);
 }
-.portrait
-{
-    width : 150;
-    height : 150;
-    border-radius : 8;
-    border-width : 4;
-    background-color:gray;
-    border-color : var(--secondary);
+
+.portrait {
+    width: 150;
+    height: 150;
+    border-radius: 8;
+    border-width: 4;
+    background-color: gray;
+    border-color: var(--secondary);
 }
-/* .portrait:hover */
-/* { */
-/*     background-color:white; */
-/*     border-color : white; */
-/*     transition : all 0.5s ease; */
-/* } */
+
 .truncate {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+
+.assign-worker:hover {
+    border-color: green;
+}
+
+.un-assign-worker:hover {
+    border-color: red;
+}
+
+.content {
+    border-color: var(--header);
+    border-width: 4;
+    border-radius: 16;
+    margin: 16;
+    padding: 16;
+}
+
+.content:hover {
+    border-color: var(--border);
+}
+
+.message-box {
+    flex-grow: 1;
+    opacity: 0.5;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    height: 20%;
+    align-content: flex-end;
+    justify-content: flex-start;
+    flex-direction: column;
+    margin-top: 16px;
+    margin-right: 16px;
+    margin-bottom: 16px;
+    margin-left: 16px;
+    width: auto;
+    max-height: 300px;
+}
+.container {
+    padding:16px;
+    flex-grow: 0;
+    flex-shrink: 1;
+    opacity: 0.5;
+    background-color:var(--window);
+    border-color:var(--border);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-width:4px;
+    align-content: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    margin-top: 16px;
+    margin-right: 16px;
+    margin-bottom: 16px;
+    margin-left: 16px;
+    width: auto;
+    height:auto;
 }

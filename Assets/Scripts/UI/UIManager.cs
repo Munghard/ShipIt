@@ -13,7 +13,10 @@ public class UIManager : MonoBehaviour
     private Button btnNewGame;
     public VisualElement navbar;
     public VisualElement workContent;
+    public VisualElement workersContent;
+    public VisualElement availableProjectsContent;
     public VisualElement projectsContent;
+    public VisualElement tasksContent;
     public VisualElement staffingContent;
     public VisualElement shopContent;
     public VisualElement messagebox;
@@ -21,7 +24,7 @@ public class UIManager : MonoBehaviour
 
     VisualElement Root;
 
-    List<Sprite> Icons;
+    public static List<Sprite> Icons;
 
     private void Awake()
     {
@@ -43,6 +46,8 @@ public class UIManager : MonoBehaviour
 
         Game.OnNewWorker += NewWorkerUI;
 
+        Game.OnWorkersChanged += WorkersChanged;
+
         Game.textPop.OnNewTextPop += NewMessageBox;
 
         Game.OnProjectsChanged += UpdateShop;
@@ -52,8 +57,11 @@ public class UIManager : MonoBehaviour
         Root = uiDocument.rootVisualElement;
         navbar = Root.Q<VisualElement>("navbar");
         workContent = Root.Q<VisualElement>("workContent");
+        workersContent = Root.Q<VisualElement>("workersContent");
         staffingContent = Root.Q<VisualElement>("staffingContent");
+        availableProjectsContent = Root.Q<VisualElement>("availableProjectsContent");
         projectsContent = Root.Q<VisualElement>("projectsContent");
+        tasksContent = Root.Q<VisualElement>("tasksContent");
         shopContent = Root.Q<VisualElement>("shopContent");
 
         messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
@@ -68,9 +76,19 @@ public class UIManager : MonoBehaviour
 
     }
 
+    private void WorkersChanged(List<Worker> list)
+    {
+        workersContent.Clear();
+        foreach (var worker in list)
+        {
+            NewWorkerUI(worker);
+        }
+    }
+
     private void UpdateShop(List<Project> list)
     {
-        foreach (var buyable in BuyableLibrary.GetBuyables())
+        shopContent.Clear();
+        foreach (var buyable in Game.buyables)
         {
             NewBuyableUI(buyable);
         }
@@ -89,7 +107,7 @@ public class UIManager : MonoBehaviour
 
     private void AvailableProjectsChanged(List<Project> list)
     {
-        projectsContent.Clear();
+        availableProjectsContent.Clear();
         foreach (Project project in list) 
         {
             NewAvailableProjectUI(project);
@@ -97,16 +115,7 @@ public class UIManager : MonoBehaviour
     }
     private void ProjectsChanged(List<Project> list)
     {
-        var toRemove = workContent.Children()
-            .Where(c => !c.ClassListContains("worker-window")) // or use your custom check
-            .ToList();
-
-        foreach (var element in toRemove)
-        {
-            workContent.Remove(element);
-        }
-
-
+        projectsContent.Clear();
         foreach (Project project in list) 
         {
             NewProjectUI(project);
@@ -124,18 +133,27 @@ public class UIManager : MonoBehaviour
     private void CreateNavBar()
     {
         // Initial options
+        VisualElement statsContainer = new VisualElement();
+        statsContainer.AddToClassList("container");
+        
+        navbar.Add(statsContainer);
 
-        Label fundsLabel = new Label($"Funds: {Game.Money}$");
-        Game.OnMoneyChanged += (money) => fundsLabel.text = $"Funds: {Game.Money}$";
+        Label statsLabel = new Label("Stats");
+        statsLabel.AddToClassList("navbar-label-header");
+
+        statsContainer.Add(statsLabel);
+        
+        Label fundsLabel = new Label($"{Game.Money}$");
+        Game.OnMoneyChanged += (money) => fundsLabel.text = $"{Game.Money}$";
         fundsLabel.AddToClassList("navbar-label");
 
-        navbar.Add(fundsLabel);
+        statsContainer.Add(fundsLabel);
 
-        Label repLabel = new Label($"Reputation: {Game.Reputation}");
-        Game.OnReputationChanged += (rep) => repLabel.text = $"Reputation: {Game.Reputation}";
+        Label repLabel = new Label($"{Game.Reputation}Rep");
+        Game.OnReputationChanged += (rep) => repLabel.text = $"{Game.Reputation}Rep";
         repLabel.AddToClassList("navbar-label");
 
-        navbar.Add(repLabel);
+        statsContainer.Add(repLabel);
 
 
         VisualElement vTimeContainer = new VisualElement()
@@ -145,6 +163,7 @@ public class UIManager : MonoBehaviour
                 flexDirection = FlexDirection.Column
             }
         };
+        vTimeContainer.AddToClassList("container");
 
         VisualElement hTimeContainer = new VisualElement()
         {
@@ -155,7 +174,8 @@ public class UIManager : MonoBehaviour
         };
 
 
-
+        vTimeContainer.AddToClassList("container");
+        
         navbar.Add(vTimeContainer);
 
         Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
@@ -227,61 +247,64 @@ public class UIManager : MonoBehaviour
     {
         var elements = new List<VisualElement>();
 
-        Image imgPortrait = new()
-        {
-            //sprite = buyable.Icon,
-            sprite = Icons[93],
-        };
+        Image imgPortrait = new() { sprite = buyable.Icon };
         imgPortrait.AddToClassList("portrait");
-
         elements.Add(imgPortrait);
 
-        Label idLabel = new Label($"WorkerID: {buyable.Id}");
         Label nameLabel = new Label($"Name: {buyable.Name}");
-        Label descriptionLabel = new Label($"Description: {TextWrap.WrapText(buyable.Description,30)}");
+        Label descriptionLabel = new Label($"Description: {TextWrap.WrapText(buyable.Description, 30)}");
         Label costLabel = new Label($"Cost: {buyable.Cost}$");
         Label reputationLabel = new Label($"Reputation needed: {buyable.ReputationNeeded}");
 
-        //elements.Add(idLabel);
         elements.Add(nameLabel);
         elements.Add(descriptionLabel);
         elements.Add(costLabel);
         elements.Add(reputationLabel);
 
+        Button btnSubmit = new() { text = "Buy!" };
+        Label purchasedLabel = new() { text = "Purchased!" };
+        bool hasBuyable = Game.acquiredBuyables.Contains(buyable) && buyable.SingleBuy;
 
-
-        bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
-        costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-        reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-
-        Button btnSubmit = new()
+        void UpdateBuyableUI()
         {
-            text = "Buy!",
-        };
+            bool acquired = Game.acquiredBuyables.Contains(buyable) && buyable.SingleBuy;
+            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
+
+            costLabel.style.color = canBuy ? Color.green : Color.red;
+            reputationLabel.style.color = canBuy ? Color.green : Color.red;
+
+            if (!acquired)
+            {
+                if (!elements.Contains(btnSubmit))
+                {
+                    elements.Add(btnSubmit);
+                }
+                btnSubmit.SetEnabled(canBuy);
+                elements.Remove(purchasedLabel);
+            }
+            else
+            {
+                elements.Remove(btnSubmit);
+                if (!elements.Contains(purchasedLabel))
+                    elements.Add(purchasedLabel);
+            }
+        }
+
         btnSubmit.clicked += () =>
         {
-            buyable.OnPurchased(buyable,Game);
-        };
-        btnSubmit.SetEnabled(canBuy);
-
-        elements.Add(btnSubmit);
-
-        Game.OnMoneyChanged += (money) =>
-        {
-            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
-            costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-            reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-            btnSubmit.SetEnabled(canBuy);
-        };
-        Game.OnReputationChanged += (rep) =>
-        {
-            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
-            costLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-            reputationLabel.style.color = canBuy ? new StyleColor(Color.green) : new StyleColor(Color.red);
-            btnSubmit.SetEnabled(canBuy);
+            buyable.OnPurchased(buyable, Game);
+            Game.AddBuyableToAcquired(buyable);
+            Game.textPop.New("Purchased: " + buyable.Name, Vector2.zero, Color.cyan);
+            UpdateBuyableUI();
         };
 
-        var window = new WindowUI(buyable.Name, Icons[84], elements, Vector2.zero,false);
+        UpdateBuyableUI();
+        Game.OnMoneyChanged += (_) => UpdateBuyableUI();
+        Game.OnReputationChanged += (_) => UpdateBuyableUI();
+        Game.OnAcquiredBuyablesChanged += (_) => UpdateBuyableUI();
+
+        var window = new WindowUI(buyable.Name, Icons[84], elements, Vector2.zero, false);
+        window.AddToClassList("buyable-window");
 
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;
@@ -290,10 +313,10 @@ public class UIManager : MonoBehaviour
         window.style.paddingBottom = 16;
         window.Q<VisualElement>("window").style.position = Position.Relative;
 
-        window.AddToClassList("buyable-window");
-
         shopContent.Add(window);
     }
+
+
     private void NewProjectUI(Project project)
     {
         var projectIndex = Game.Projects.IndexOf(project);
@@ -362,31 +385,33 @@ public class UIManager : MonoBehaviour
         
         project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
 
-        var window = new WindowUI(project.Name, Icons[36], elements, new Vector2((projectIndex * 100) + 50, projectIndex * 100));
+        var window = new WindowUI(project.Name, Icons[36], elements, new Vector2((projectIndex * 100), projectIndex * 100));
         window.AddToClassList("project-window");
 
-        workContent.Add(window);
+        projectsContent.Add(window);
+
+        void UpdateProjectButtons(Project project, VisualElement container)
+        {
+            container.Clear();
+
+            Button btn = new()
+            {
+                text = project.Status == "failed" || project.Status == "paid out" ? "Remove!" : "Ship it!"
+            };
+
+            btn.clicked += () =>
+            {
+                if (project.Status == "failed" || project.Status == "paid out")
+                    Game.RemoveProject(project);
+                else
+                    project.TurnInProject();
+            };
+
+            container.Add(btn);
+        }
     }
 
-    void UpdateProjectButtons(Project project, VisualElement container)
-    {
-        container.Clear();
-
-        Button btn = new()
-        {
-            text = project.Status == "failed" || project.Status == "paid out" ? "Remove!" : "Ship it!"
-        };
-
-        btn.clicked += () =>
-        {
-            if (project.Status == "failed" || project.Status == "paid out")
-                Game.RemoveProject(project);
-            else
-                project.TurnInProject();
-        };
-
-        container.Add(btn);
-    }
+    
 
     private void NewAvailableProjectUI(Project project)
     {
@@ -442,7 +467,7 @@ public class UIManager : MonoBehaviour
 
         window.AddToClassList("available-project-window");
 
-        projectsContent.Add(window);
+        availableProjectsContent.Add(window);
     }
     private void NewTaskUI(Task task)
     {
@@ -552,11 +577,11 @@ public class UIManager : MonoBehaviour
 
         elements.Add(pBar);
 
-        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 200) + 450, /*taskIndex * 100*/ 0));
+        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 200), /*taskIndex * 100*/ 0));
 
         window.AddToClassList("task-window");
 
-        workContent.Add(window);
+        tasksContent.Add(window);
     }
 
     private static void UpdateAssignableWorkers(Task task, VisualElement assignableWorkersContainer, List<Worker> availableWorkers)
@@ -590,6 +615,7 @@ public class UIManager : MonoBehaviour
             };
 
             assignButton.Add(portrait);
+            assignButton.AddToClassList("assign-worker");
 
             assignButton.clicked += () =>
             {
@@ -630,6 +656,7 @@ public class UIManager : MonoBehaviour
             };
 
             assignButton.Add(portrait);
+            assignButton.AddToClassList("un-assign-worker");
 
             assignButton.clicked += () =>
             {
@@ -732,11 +759,11 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2((workerIndex * 200) + 50, /*(workerIndex * 100) + */600));
+        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2((workerIndex * 200), 0));
 
         window.AddToClassList("worker-window");
 
-        workContent.Add(window);
+        workersContent.Add(window);
     }
     private void NewAvailableWorkerUI(Worker worker)
     {
@@ -788,7 +815,8 @@ public class UIManager : MonoBehaviour
 
 
 
-        var window = new WindowUI(worker.Name, Icons[20], elements, Vector2.zero);
+        var window = new WindowUI(worker.Name, Icons[20], elements, Vector2.zero, false);
+
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;
         window.style.paddingLeft = 16;

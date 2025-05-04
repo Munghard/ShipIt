@@ -1,6 +1,8 @@
 using Assets.Scripts.Utils;
+using Assets.Scripts.Models;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Scripts.Data;
 
 public class Game
 {
@@ -8,6 +10,11 @@ public class Game
     public List<Project> AvailableProjects = new();
     public List<Worker> Workers = new();
     public List<Worker> WorkersForHire = new();
+
+    public List<Buyable> buyables = new();
+    public List<Buyable> acquiredBuyables = new();
+
+
     public float Money = 1000f;
 
     public float Reputation = 50f;
@@ -25,6 +32,7 @@ public class Game
     public System.Action<Worker> OnNewWorker;
     public System.Action<Worker> OnWorkerAssigned;
     public System.Action<Worker> OnWorkerFreed;
+    public System.Action<List<Worker>> OnWorkersChanged;
     
     public System.Action<float> OnMoneyChanged;
 
@@ -34,7 +42,10 @@ public class Game
 
     public System.Action<List<Project>> OnProjectsChanged;
 
+    public System.Action<List<Buyable>> OnAcquiredBuyablesChanged;
+
     public System.Action<List<Project>> OnAvailableProjectsChanged;
+
     public System.Action<List<Worker>> OnAvailableWorkersChanged;
 
     PlayerInput PlayerInput;
@@ -53,11 +64,18 @@ public class Game
         Workers = new List<Worker>();
         AvailableProjects = new List<Project>();
         WorkersForHire = new List<Worker>();
+
+        OnProjectsChanged?.Invoke(Projects);
+        OnWorkersChanged?.Invoke(Workers);
+        OnAvailableProjectsChanged?.Invoke(AvailableProjects);
+        OnAvailableWorkersChanged?.Invoke(WorkersForHire);
+
         SetMoney(1000);
         SetReputation(50);
 
         RollWorkersForHire(3);
         RollProjects(3);
+        RollBuyables(3);
 
         var project = new Project(this, "Starting project", "Your first project.", 1, 3000);
         var worker = new Worker("Willy Worker",workerGenerator.GetRandomPortrait(), Specialty.Get("General"), 1, 100, project, this);
@@ -65,6 +83,11 @@ public class Game
         AddProject(project);
 
         textPop.New("New game started!", Vector2.zero, Color.white);
+    }
+
+    private void RollBuyables(int num)
+    {
+        buyables = BuyableLibrary.GetBuyables();
     }
 
     public void SetReputation(float amount)
@@ -205,6 +228,7 @@ public class Game
         Workers.Add(worker);
         Debug.Log($"{worker.Name} added to team.");
         OnNewWorker?.Invoke(worker);
+        OnWorkersChanged?.Invoke(Workers);
     }
 
     public void UpdateGame()
@@ -229,4 +253,9 @@ public class Game
             worker.UpdateWorker();
     }
 
+    internal void AddBuyableToAcquired(Buyable buyable)
+    {
+        acquiredBuyables.Add(buyable);
+        OnAcquiredBuyablesChanged?.Invoke(acquiredBuyables);
+    }
 }

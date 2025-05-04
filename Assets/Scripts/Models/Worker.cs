@@ -127,7 +127,7 @@ public class Worker
         Stress = Mathf.Min(MaxStress, Stress + amount);
         if (amount > 5)
         {
-            Game.textPop.New($"Stress + {amount}", GetWindowCenter(), Color.red);
+            Game.textPop.New($"{Name} Stress + {amount}", GetWindowCenter(), Color.red);
         }
         OnStressChanged?.Invoke(Stress);
     }
@@ -137,7 +137,7 @@ public class Worker
         Stress = Mathf.Max(0, Stress - amount);
         if (amount > 5)
         {
-            Game.textPop.New($"Stress - {amount}", GetWindowCenter(), Color.green);
+            Game.textPop.New($"{Name} Stress - {amount}", GetWindowCenter(), Color.green);
         }
         OnStressChanged?.Invoke(Stress);
     }
@@ -159,7 +159,7 @@ public class Worker
         Health = Mathf.Min(MaxHealth, Health + (amount / 100f));
         if (amount > 5)
         {
-            Game.textPop.New($"Health + {amount}", GetWindowCenter(), Color.green);
+            Game.textPop.New($"{Name} Health + {amount}", GetWindowCenter(), Color.green);
         }
         OnHealthChanged?.Invoke(Health);
     }
@@ -169,7 +169,7 @@ public class Worker
         Health -= amount;
         if (amount > 5)
         {
-            Game.textPop.New($"Health - {amount}", GetWindowCenter(), Color.red);
+            Game.textPop.New($"{Name} Health - {amount}", GetWindowCenter(), Color.red);
         }
         OnHealthChanged?.Invoke(Health);
     }
