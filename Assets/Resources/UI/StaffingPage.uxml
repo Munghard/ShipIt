@@ -1,0 +1,11 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
+    <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
+        <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1;">
+            <engine:Label text="Staffing" parse-escape-sequences="false" name="pageHeader" style="font-size: 40px; -unity-font-style: bold; padding-top: 20px; padding-right: 20px; padding-bottom: 20px; padding-left: 20px;" />
+            <engine:ScrollView>
+                <engine:VisualElement name="staffingContent" class="content" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
+            </engine:ScrollView>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

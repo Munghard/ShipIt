@@ -4,6 +4,7 @@
     --secondary: rgb(136, 192, 208);
     --background: rgb(30, 31, 38);
     --window: rgb(47, 50, 62);
+    --content: rgba(47, 50, 62, 0.2);
     --header: rgb(59, 66, 82);
     --header-active: rgb(94, 129, 172);
     --text: rgb(236, 239, 244);
@@ -206,8 +207,8 @@ Label {
 }
 
 .portrait {
-    width: 150;
-    height: 150;
+    width: 64;
+    height: 64;
     border-radius: 8;
     border-width: 4;
     background-color: gray;
@@ -229,6 +230,7 @@ Label {
 }
 
 .content {
+    background-color: var(--content);
     border-color: var(--header);
     border-width: 4;
     border-radius: 16;
@@ -279,4 +281,26 @@ Label {
     margin-left: 16px;
     width: auto;
     height:auto;
+}
+
+#unity-low-button{
+    background-color: var(--header);
+    border-radius: 8px 8px  0 0 ;
+    border-width: 4px;
+    border-color: var(--border);
+}
+#unity-high-button{
+    background-color: var(--header);
+    border-radius: 0 0 8px 8px;
+    border-width: 4px;
+    border-color: var(--border);
+}
+.unity-base-slider__dragger{
+    background-color: var(--primary);
+    border-radius: 8px;
+    border-width: 4px;
+    border-color: var(--border);
+}
+.unity-base-slider__tracker{
+    background-color: var(--window);
 }

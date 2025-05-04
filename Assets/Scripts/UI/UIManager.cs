@@ -388,6 +388,13 @@ public class UIManager : MonoBehaviour
         var window = new WindowUI(project.Name, Icons[36], elements, new Vector2((projectIndex * 100), projectIndex * 100));
         window.AddToClassList("project-window");
 
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
+        window.Q<VisualElement>("window").style.position = Position.Relative;
+
         projectsContent.Add(window);
 
         void UpdateProjectButtons(Project project, VisualElement container)
@@ -577,9 +584,16 @@ public class UIManager : MonoBehaviour
 
         elements.Add(pBar);
 
-        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2((taskIndex * 200), /*taskIndex * 100*/ 0));
+        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2(0, /*taskIndex * 100*/ 0));
 
         window.AddToClassList("task-window");
+        
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
+        window.Q<VisualElement>("window").style.position = Position.Relative;
 
         tasksContent.Add(window);
     }
@@ -759,9 +773,15 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2((workerIndex * 200), 0));
+        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2(0, 0));
 
         window.AddToClassList("worker-window");
+        window.style.position = Position.Relative;
+        window.style.paddingRight = 16;
+        window.style.paddingLeft = 16;
+        window.style.paddingTop = 16;
+        window.style.paddingBottom = 16;
+        window.Q<VisualElement>("window").style.position = Position.Relative;
 
         workersContent.Add(window);
     }

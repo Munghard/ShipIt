@@ -15,9 +15,9 @@ public class Game
     public List<Buyable> acquiredBuyables = new();
 
 
-    public float Money = 1000f;
+    public float Money = 0f;
 
-    public float Reputation = 50f;
+    public float Reputation = 0f;
 
     public float TimeScale = 1f;
     public float ScaledDeltaTime;
@@ -70,8 +70,8 @@ public class Game
         OnAvailableProjectsChanged?.Invoke(AvailableProjects);
         OnAvailableWorkersChanged?.Invoke(WorkersForHire);
 
-        SetMoney(1000);
-        SetReputation(50);
+        SetMoney(0);
+        SetReputation(0);
 
         RollWorkersForHire(3);
         RollProjects(3);
