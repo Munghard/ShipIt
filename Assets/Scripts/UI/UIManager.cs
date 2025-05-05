@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
@@ -35,23 +36,9 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+
         Game = new Game();
 
-        Game.OnNewProject += NewProjectUI;
-
-        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
-
-        Game.OnProjectsChanged += ProjectsChanged;
-
-        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
-
-        Game.OnNewWorker += NewWorkerUI;
-
-        Game.OnWorkersChanged += WorkersChanged;
-
-        Game.textPop.OnNewTextPop += NewMessageBox;
-
-        Game.OnProjectsChanged += UpdateShop;
 
 
         var uiDocument = GetComponent<UIDocument>();
@@ -69,9 +56,28 @@ public class UIManager : MonoBehaviour
         btnNewGame = Root.Q<Button>("btnNewGame"); // Access the button by name
         btnNewGame.clicked += () =>
         {
-            Game.NewGame();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
         };    // Add click event handler
         SetButtonIcon(btnNewGame, "circle-play", "New game");
+  
+        Game.OnNewProject += NewProjectUI;
+
+        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
+
+        Game.OnProjectsChanged += ProjectsChanged;
+
+        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
+
+        Game.OnNewWorker += NewWorkerUI;
+
+        Game.OnWorkersChanged += WorkersChanged;
+
+        Game.textPop.OnNewTextPop += NewMessageBox;
+
+        Game.OnProjectsChanged += UpdateShop;
+
+        Game.NewGame();
 
         CreateNavBar();
 
@@ -146,6 +152,7 @@ public class UIManager : MonoBehaviour
     private void CreateNavBar()
     {
         // Initial options
+
         CreateStatsContainer();
 
         CreateTimeContainer();
