@@ -12,6 +12,21 @@
     --border: rgb(76, 86, 106);
     --navbar: rgb(36, 38, 48);
 }
+.light-theme {
+    --primary: rgb(79, 163, 217);
+    --primary-hover: rgb(43, 124, 167);
+    --secondary: rgb(136, 192, 208);
+    --background: rgb(240, 241, 245);
+    --window: rgb(255, 255, 255);
+    --content: rgba(255, 255, 255, 0.9);
+    --header: rgb(245, 245, 250);
+    --header-active: rgb(94, 129, 172);
+    --text: rgb(30, 31, 38);
+    --btntext: rgb(30, 31, 38);
+    --border: rgb(200, 210, 220);
+    --navbar: rgb(245, 245, 250);
+}
+
 
 Button {
     background-color: var(--header);

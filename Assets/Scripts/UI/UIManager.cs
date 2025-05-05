@@ -4,6 +4,7 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -70,10 +71,22 @@ public class UIManager : MonoBehaviour
         {
             Game.NewGame();
         };    // Add click event handler
-        SetButtonIcon(btnNewGame, Icons[74], "New game");
+        SetButtonIcon(btnNewGame, "circle-play", "New game");
 
         CreateNavBar();
 
+    }
+
+    private static VisualElement CreateFAIcon(string name,int width = 32,int height = 32)
+    {
+        VisualElement icon = new();
+
+        var vec = Resources.Load<VectorImage>($"Fontawesome/svgs/solid/{name}");
+        icon.style.backgroundImage = new StyleBackground(vec);
+        //test.style.unityBackgroundImageTintColor = Color.cyan;
+        icon.style.width = width;
+        icon.style.height = height;
+        return icon;
     }
 
     private void WorkersChanged(List<Worker> list)
@@ -133,16 +146,47 @@ public class UIManager : MonoBehaviour
     private void CreateNavBar()
     {
         // Initial options
+        CreateStatsContainer();
+
+        CreateTimeContainer();
+
+        CreateThemeButton();
+
+    }
+
+    private void CreateThemeButton()
+    {
+        Button btnTheme = new Button();
+        SetButtonIcon(btnTheme, "Brush", "Theme");
+
+        btnTheme.clicked += () =>
+        {
+            Root.ToggleInClassList("light-theme");
+            availableProjectsContent.ToggleInClassList("light-theme");
+            //workContent.ToggleInClassList("light-theme");
+            workersContent.ToggleInClassList("light-theme");
+            staffingContent.ToggleInClassList("light-theme");
+            availableProjectsContent.ToggleInClassList("light-theme");
+            projectsContent.ToggleInClassList("light-theme");
+            tasksContent.ToggleInClassList("light-theme");
+            shopContent.ToggleInClassList("light-theme");
+        };
+
+        navbar.Add(btnTheme);
+    }
+
+    private void CreateStatsContainer()
+    {
         VisualElement statsContainer = new VisualElement();
         statsContainer.AddToClassList("container");
-        
+
         navbar.Add(statsContainer);
 
         Label statsLabel = new Label("Stats");
         statsLabel.AddToClassList("navbar-label-header");
 
         statsContainer.Add(statsLabel);
-        
+
         Label fundsLabel = new Label($"{Game.Money}$");
         Game.OnMoneyChanged += (money) => fundsLabel.text = $"{Game.Money}$";
         fundsLabel.AddToClassList("navbar-label");
@@ -154,8 +198,10 @@ public class UIManager : MonoBehaviour
         repLabel.AddToClassList("navbar-label");
 
         statsContainer.Add(repLabel);
+    }
 
-
+    private void CreateTimeContainer()
+    {
         VisualElement vTimeContainer = new VisualElement()
         {
             style =
@@ -175,7 +221,7 @@ public class UIManager : MonoBehaviour
 
 
         vTimeContainer.AddToClassList("container");
-        
+
         navbar.Add(vTimeContainer);
 
         Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
@@ -186,12 +232,13 @@ public class UIManager : MonoBehaviour
             }
         };
         Game.OnTimeScaleChanged += (time) => timeScaleLabel.text = $"Time scale: {time}x";
+
         timeScaleLabel.AddToClassList("navbar-label");
-        
+
         vTimeContainer.Add(timeScaleLabel);
 
         Button btnDown = new Button();
-        SetButtonIcon(btnDown, Icons[55], "");
+        SetButtonIcon(btnDown, "circle-left", "");
 
         btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
 
@@ -199,21 +246,46 @@ public class UIManager : MonoBehaviour
 
         Button btnUp = new Button();
         btnUp.clicked += () => Game.SetTimeScale(Game.TimeScale * 2);
-        SetButtonIcon(btnUp, Icons[56], "");
+        SetButtonIcon(btnUp, "circle-right", "");
 
         hTimeContainer.Add(btnUp);
 
         Button btnPause = new Button();
-        SetButtonIcon(btnPause, Icons[88],"");
+        SetButtonIcon(btnPause, "circle-pause", "");
 
         btnPause.clicked += () => Game.TogglePaused();
 
         hTimeContainer.Add(btnPause);
 
         vTimeContainer.Add(hTimeContainer);
+
     }
 
-    private void SetButtonIcon(Button btn, Sprite sprite, string text)
+    private void SetButtonIcon(Button btn, string name, string text)
+    {
+        btn.text = string.Empty;
+        // Create the container for the button content
+        VisualElement buttonContent = new VisualElement();
+        buttonContent.style.flexDirection = FlexDirection.Row; // Align items horizontally
+        buttonContent.style.alignItems = Align.Center; // Center the icon and label vertically
+
+        // Create the Image element for the icon
+        
+        
+        // Create the Label for the button's text
+        Label buttonLabel = new Label(text);
+
+        // Add the icon and label to the container
+        buttonContent.Add(CreateFAIcon(name, 24, 24));
+        buttonLabel.style.marginLeft = 16;
+
+        if(!string.IsNullOrEmpty(text))buttonContent.Add(buttonLabel);
+
+        // Set the content of the button to be the container with the icon and label
+        btn.Clear();  // Remove any existing content
+        btn.Add(buttonContent);  // Add the new container with both icon and label
+    }
+    private void SetButtonIconOld(Button btn, Sprite sprite, string text)
     {
         btn.text = string.Empty;
         // Create the container for the button content
@@ -353,7 +425,13 @@ public class UIManager : MonoBehaviour
         Label idLabel = new Label($"ProjectID: {project.Id}");
         Label descLabel = new Label($"Description: {TextWrap.WrapText(project.Description, 30)}");
         Label diffLabel = new Label($"Difficulty: {project.Difficulty}");
-        Label durationLabel = new Label($"Duration: {project.StartDuration:F1}");
+
+        TimeSpan duration = TimeSpan.FromSeconds(project.Duration);
+        TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration);
+
+        var timeString = $"Time left: {duration.Hours}h {duration.Minutes}m {duration.Seconds}s / {startDuration.Hours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+
+        Label durationLabel = new Label(timeString);
         Label payLabel = new Label($"Pay: {project.Pay}");
         Label statusLabel = new Label($"Status: {project.Status}");
         Label tasksLeftLabel = new Label($"Tasks left: {project.Tasks.Count}");
@@ -374,7 +452,17 @@ public class UIManager : MonoBehaviour
         //project.OnDifficultyChanged += val => diffLabel.text = $"Difficulty: {val}";
         project.OnStatusChanged += val => statusLabel.text = $"Status: {val}";
         project.OnTasksChanged += (tasks) => tasksLeftLabel.text = $"Tasks left: {tasks.Count}";
-        project.OnDurationChanged += (value) => durationLabel.text = $"Duration: {project.Duration}";
+
+
+        project.OnDurationChanged += (value) =>
+        {
+            TimeSpan duration = TimeSpan.FromSeconds(project.Duration);
+            TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration);
+
+            var timeString = $"Time left: {duration.Hours}h {duration.Minutes}m {duration.Seconds}s / {startDuration.Hours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+
+            durationLabel.text = timeString;
+        };
 
         elements.Add(dlBar);
         elements.Add(pBar);

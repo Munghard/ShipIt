@@ -77,7 +77,7 @@ public class Game
         RollProjects(3);
         RollBuyables(3);
 
-        var project = new Project(this, "Starting project", "Your first project.", 1, 3000);
+        var project = new Project(this, "First project", "Your entry into the working world.", 1, 3000, 100);
         var worker = new Worker("Willy Worker",workerGenerator.GetRandomPortrait(), Specialty.Get("General"), 1, 100, project, this);
         AddWorker(worker);
         AddProject(project);

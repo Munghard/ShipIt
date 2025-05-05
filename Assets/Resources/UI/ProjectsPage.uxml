@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
     <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1;">
-            <engine:Label text="Projects" parse-escape-sequences="false" name="pageHeader" style="font-size: 40px; -unity-font-style: bold; border-top-width: 20px; border-right-width: 20px; border-bottom-width: 20px; border-left-width: 20px;" />
+            <engine:Label text="Projects" parse-escape-sequences="false" name="pageHeader" style="font-size: 40px; -unity-font-style: bold; border-top-width: 20px; border-right-width: 20px; border-bottom-width: 20px; border-left-width: 20px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
             <engine:ScrollView>
                 <engine:VisualElement name="availableProjectsContent" class="content" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
             </engine:ScrollView>
