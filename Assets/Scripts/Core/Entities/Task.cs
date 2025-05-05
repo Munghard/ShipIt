@@ -24,19 +24,20 @@ public class Task
     public System.Action<List<Worker>> OnWorkersChanged;
     public System.Action<Task> OnCompleted;
 
-    public Task(string name, string description, float difficulty, Specialty specialty, float timeToComplete, Project project, string status, int priority)
+    public Task(string name, string description, float difficulty, Specialty specialty, float timeToComplete, Project project,Game game, string status, int priority, float progress)
     {
         Id = Random.Range(1, 10000);
         Name = name;
+        Progress = progress;
         Description = description;
         Difficulty = difficulty;
         Specialty = specialty;
         TimeToComplete = timeToComplete;
         Project = project;
-        Game = project?.Game;
+        Game = game;
         Status = status;
         Priority = priority;
-        Progress = 0;
+        Progress = progress;
     }
 
     public Vector2 GetWindowCenter()
@@ -96,9 +97,9 @@ public class Task
             RemoveWorker(worker);
         }
     }
-    public void UpdateTask()
+    public void UpdateTask(float simulationTime)
     {
-        float deltaTime = Time.deltaTime;
+        float deltaTime = Game.ScaledDeltaTime;
         if (Status == "completed" || Status == "failed") return;
 
         foreach (var worker in Workers)
@@ -110,7 +111,7 @@ public class Task
             else if (worker.Specialty.Name == "Management" && Specialty.Name != "General")
                 multiplier = 0.2f;
 
-            Progress += (multiplier * worker.Efficiency * deltaTime) / TimeToComplete;
+            Progress += (multiplier * worker.Efficiency * deltaTime * 0.05f) / TimeToComplete;
             OnProgressChanged?.Invoke(Progress);
         }
 

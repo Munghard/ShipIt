@@ -33,46 +33,70 @@ public class Project
     public System.Action<Project> OnCompleted;
     public System.Action<Project> OnFailed;
 
-    public Project(Game game, string name, string description, float difficulty, float duration, float? pay = null)
+    public Project(Game game, string name, string description, float difficulty, float duration, float? pay = null,float? startDuration = null, int? id = null,List<Task> tasks = null)
     {
         this.Game = game;
-        Id = UnityEngine.Random.Range(1, 10000);
+        Id = id?? UnityEngine.Random.Range(1, 10000);
         Name = name;
         Description = description;
         Difficulty = difficulty;
         Duration = duration;
-        ReputationNeeded = (difficulty - 1) * 500;
+        ReputationNeeded = ReputationNeededFromLevelFormula(difficulty);
         ReputationGain = (difficulty) * 100;
-        StartDuration = duration;
+        StartDuration = startDuration ?? duration;
         Pay = pay ?? difficulty * 1000;
         Status = "pending";
         Icon = game.iconManager.GetIcon(32).SheetTexture;
-        CreateTasks();
+        Tasks = new List<Task>(); // Initialize Tasks first
+        var newTasks = tasks ?? CreateTasks();
+        foreach (var task in newTasks)
+        {
+            AddTask(task);
+        } 
     }
+
+    public static float ReputationNeededFromLevelFormula(float difficulty)
+    {
+        return (difficulty - 1) * 500;
+    }
+    public static float DifficultyFromReputation(float reputation)
+    {
+        return (reputation / 500f) + 1f;
+    }
+
     private void SetStatus(string status)
     {
         Status = status.ToLower();
         OnStatusChanged?.Invoke(status);
     }
-    private void CreateTasks()
+    private List<Task> CreateTasks()
     {
+        //Debug.Log("Creating tasks");
         List<Task> allTasks = TaskLibrary.GetMainTasks().ToList();
+        List<Task> createdTasks = new();
 
-        // Set max task count proportional to Difficulty
-        int maxTasks = Mathf.Clamp((int)Difficulty * 2, 1, allTasks.Count); // e.g. 2–10 tasks
+        int maxTasks = Mathf.Clamp((int)Difficulty * 2, 1, allTasks.Count);
 
-        int tasksCreated = 0;
-
-        foreach (var def in allTasks.OrderBy(_ => UnityEngine.Random.value))
+        foreach (var def in allTasks.OrderBy(_ => UnityEngine.Random.value).Take(maxTasks))
         {
-            if (tasksCreated >= maxTasks)
-                break;
-
-            var task = new Task(def.Name, def.Description, def.Difficulty, def.Specialty, def.TimeToComplete, this, "pending", Tasks.Count + 1);
-            AddTask(task);
-            tasksCreated++;
+            var task = new Task(
+                name: def.Name,
+                description: def.Description,
+                difficulty: def.Difficulty,
+                specialty: def.Specialty,
+                timeToComplete: def.TimeToComplete,
+                project: this, // Safe if no logic in Task depends on a fully constructed Project
+                game:Game,
+                status: "pending",
+                priority: createdTasks.Count + 1, // use local count instead
+                progress: 0f
+            );
+            createdTasks.Add(task);
         }
+
+        return createdTasks;
     }
+
 
 
     public void AddTask(Task task)
@@ -96,7 +120,7 @@ public class Project
         float minPriority = float.MaxValue;
         foreach (var task in Tasks)
         {
-            if (task.Status != "completed" && task.Priority < minPriority)
+            if (task.Status != "completed" && task.Status != "failed" && task.Priority < minPriority)
             {
                 minPriority = task.Priority;
                 task.CanStart = true;
@@ -189,11 +213,11 @@ public class Project
 
         OnCompleted?.Invoke(this);
     }
-    public void UpdateProject()
+    public void UpdateProject(float simulatedTime)
     {
         if (Status != "completed" && Status != "failed" && Status != "paid out")
         {
-            Duration -= Time.deltaTime;
+            Duration -= Game.ScaledDeltaTime;
             OnDurationChanged?.Invoke(Duration);
             if (Duration <= 0)
                 FailProject();
@@ -202,13 +226,16 @@ public class Project
         if (Status == "pending")
             SetStatus("in progress");
 
-        float totalProgress = 0f;
-        foreach (var task in Tasks)
-        {
-            totalProgress += task.Progress;
-        }
+        //float totalProgress = 0f;
+        //foreach (var task in Tasks)
+        //{
+        //    totalProgress += task.Progress;
+        //}
 
-        Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f;
+        //Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f;
+
+        Progress = Tasks.Count > 0 ? (Tasks.Where(t => t.Progress >= 100f).Count() / (float)Tasks.Count) * 100f : 0f;
+
         OnProgressChanged?.Invoke(Progress);
 
         if (Progress >= 100f && Status != "completed" && Status != "paid out")

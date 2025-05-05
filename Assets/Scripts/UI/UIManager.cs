@@ -1,10 +1,9 @@
-using Assets.Scripts.Data;
 using Assets.Scripts.Models;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +13,6 @@ public class UIManager : MonoBehaviour
 {
     private Button btnNewGame;
     public VisualElement navbar;
-    public VisualElement workContent;
     public VisualElement workersContent;
     public VisualElement availableProjectsContent;
     public VisualElement projectsContent;
@@ -22,6 +20,8 @@ public class UIManager : MonoBehaviour
     public VisualElement staffingContent;
     public VisualElement shopContent;
     public VisualElement messagebox;
+    public VisualElement gameButtons;
+
     Game Game;
 
     VisualElement Root;
@@ -36,15 +36,11 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-
         Game = new Game();
-
-
 
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
         navbar = Root.Q<VisualElement>("navbar");
-        workContent = Root.Q<VisualElement>("workContent");
         workersContent = Root.Q<VisualElement>("workersContent");
         staffingContent = Root.Q<VisualElement>("staffingContent");
         availableProjectsContent = Root.Q<VisualElement>("availableProjectsContent");
@@ -53,14 +49,34 @@ public class UIManager : MonoBehaviour
         shopContent = Root.Q<VisualElement>("shopContent");
 
         messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
-        btnNewGame = Root.Q<Button>("btnNewGame"); // Access the button by name
+        gameButtons = Root.Q<VisualElement>("gameButtons");
+
+        Button btnNewGame = new();
         btnNewGame.clicked += () =>
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-
         };    // Add click event handler
         SetButtonIcon(btnNewGame, "circle-play", "New game");
-  
+
+        Button btnLoad = new();
+        btnLoad.clicked += () =>
+        {
+            LoadGame();
+        };
+        SetButtonIcon(btnLoad, "folder-open", "Load game");
+        
+        Button btnSave = new();
+        
+        btnSave.clicked += () =>
+        {
+            SaveGame();
+        };
+        SetButtonIcon(btnSave, "floppy-disk", "Save game");
+        gameButtons.Add(btnNewGame);
+        gameButtons.Add(btnLoad);
+        gameButtons.Add(btnSave);
+
+
         Game.OnNewProject += NewProjectUI;
 
         Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
@@ -81,9 +97,195 @@ public class UIManager : MonoBehaviour
 
         CreateNavBar();
 
+
+    }
+    void ClearContainers()
+    {
+        //Root
+        //navbar.Clear();
+        workersContent.Clear();
+        staffingContent.Clear();
+        availableProjectsContent.Clear();
+        projectsContent.Clear();
+        tasksContent.Clear();
+        shopContent.Clear();
+
+        //messagebox.Clear();
     }
 
-    private static VisualElement CreateFAIcon(string name,int width = 32,int height = 32)
+    private void LoadGame()
+    {
+        Game = new Game();
+
+        Game.OnNewProject += NewProjectUI;
+
+        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
+
+        Game.OnProjectsChanged += ProjectsChanged;
+
+        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
+
+        Game.OnNewWorker += NewWorkerUI;
+
+        Game.OnWorkersChanged += WorkersChanged;
+
+        Game.textPop.OnNewTextPop += NewMessageBox;
+
+        Game.OnProjectsChanged += UpdateShop;
+
+        ClearContainers();
+
+        GameData loadedData = SaveManager.LoadGame();
+        if (loadedData != null)
+        {
+            // Set loaded data to game state
+            Game.SimulationTime = loadedData.SimulationTime;
+            Game.Money = loadedData.Money;
+            Game.Reputation = loadedData.Reputation;
+
+            // Clear current workers and projects in the game
+            Game.Workers = new List<Worker>();  // Clear workers list
+            Game.Projects = new List<Project>(); // Clear projects list
+
+            // Reconstruct Workers from loaded data
+            foreach (var loadedWorker in loadedData.Workers)
+            {
+                Game.AddWorker(new Worker(
+                    name: loadedWorker.Name,
+                    portrait: Game.workerGenerator.GetPortrait(loadedWorker.PortraitIndex),
+                    specialty: Specialty.Get(loadedWorker.Specialty),
+                    skill: loadedWorker.Skill,
+                    efficiency: loadedWorker.Efficiency,
+                    project: null,
+                    game: Game,
+                    health: loadedWorker.Health,
+                    stress: loadedWorker.Stress,
+                    level: loadedWorker.Level,
+                    xp: loadedWorker.Xp,
+                    id: loadedWorker.Id
+                ));
+            }
+
+            // Reconstruct Projects and their tasks
+            foreach (var loadedProject in loadedData.Projects)
+            {
+                var tasks = new List<Task>();
+                foreach (var loadedTask in loadedProject.Tasks)
+                {
+
+                    tasks.Add(new Task(
+                        name: loadedTask.Name,
+                        description: loadedTask.Description,
+                        difficulty: loadedTask.Difficulty,
+                        specialty: Specialty.Get(loadedTask.Specialty),
+                        timeToComplete: loadedTask.TimeToComplete,
+                        project: null,
+                        game: Game,
+                        status: "pending",
+                        priority: loadedTask.Priority,
+                        progress: loadedTask.Progress
+                    ));
+                }
+                // Add project to game
+                var project = new Project(
+                    game: Game,
+                    name: loadedProject.Name,
+                    description: loadedProject.Description,
+                    difficulty: loadedProject.Difficulty,
+                    duration: loadedProject.Duration,
+                    pay: loadedProject.Pay,
+                    startDuration: loadedProject.StartDuration,
+                    id: loadedProject.Id,
+                    tasks: tasks
+
+                );
+                foreach (var task in tasks)
+                {
+                    task.Project = project;
+                }
+
+                Game.AddProject(project);
+
+                // Reconstruct tasks for each project
+            }
+        }
+        Game.textPop.New("Game loaded!", Vector2.zero, Color.magenta);
+        //update everything
+
+    }
+
+
+    private void SaveGame()
+    {
+        GameData data = new GameData()
+        {
+            SimulationTime = Game.SimulationTime,
+            Money = Game.Money,
+            Reputation = Game.Reputation,
+            Workers = new List<WorkerData>(),
+            Projects = new List<ProjectData>()
+        };
+        foreach (var worker in Game.Workers)
+        {
+            data.Workers.Add(new WorkerData()
+            {
+                Id = worker.Id,
+                Name = worker.Name,
+                Level = worker.Level,
+                Skill = worker.Skill,
+                Health = worker.Health,
+                Stress = worker.Stress,
+                PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
+                Specialty = worker.Specialty.Name,
+                Efficiency = worker.Efficiency,
+                Xp = worker.Xp,
+            });
+
+        }
+        foreach (var project in Game.Projects)
+        {
+            var pData = new ProjectData()
+            {
+                Name = project.Name,
+                Difficulty = project.Difficulty,
+                Description = project.Description,
+                Duration = project.Duration,
+                Id = project.Id,
+                Pay = project.Pay,
+                StartDuration = project.StartDuration,
+                Tasks = new List<TaskData>(),
+            };
+            data.Projects.Add(pData);
+            foreach (var task in project.Tasks)
+            {
+                pData.Tasks.Add(new TaskData()
+                {
+                    Name = task.Name,
+                    Progress = task.Progress,
+                    Specialty = task.Specialty.Name,
+                    Difficulty = task.Difficulty,
+                    Priority = task.Priority,
+                    Description = task.Description,
+                    TimeToComplete = task.TimeToComplete,
+                });
+            }
+        }
+        // fill in data.Workers, data.Projects, etc.
+        SaveManager.SaveGame(data);
+        Game.textPop.New("Game saved!", Vector2.zero, Color.magenta);
+    }
+
+    private void FixedUpdate()
+    {
+        var simulationTimeLabel = Root.Q<Label>("simulationTimeLabel");
+        if (simulationTimeLabel != null)
+        {
+            // Format the SimulationTime to display as a clock (HH:mm:ss)
+            TimeSpan timeSpan = TimeSpan.FromSeconds(Game.SimulationTime);
+            simulationTimeLabel.text = $"Time: {timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+        }
+    }
+    public static VisualElement CreateFAIcon(string name,int width = 32,int height = 32)
     {
         VisualElement icon = new();
 
@@ -138,7 +340,7 @@ public class UIManager : MonoBehaviour
         foreach (Project project in list) 
         {
             NewProjectUI(project);
-            foreach(Task task in project.Tasks.AsEnumerable().Reverse().ToList())
+            foreach(Task task in project.Tasks)
             {
                 NewTaskUI(task);
             }
@@ -231,6 +433,16 @@ public class UIManager : MonoBehaviour
 
         navbar.Add(vTimeContainer);
 
+        Label simulationTimeLabel = new Label($"Time: {Game.SimulationTime}")
+        {
+            style =
+            {
+                fontSize = 25
+            }
+        };
+        simulationTimeLabel.name = "simulationTimeLabel";
+        vTimeContainer.Add(simulationTimeLabel);
+
         Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
         {
             style =
@@ -245,7 +457,7 @@ public class UIManager : MonoBehaviour
         vTimeContainer.Add(timeScaleLabel);
 
         Button btnDown = new Button();
-        SetButtonIcon(btnDown, "circle-left", "");
+        SetButtonIcon(btnDown, "backward", "");
 
         btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
 
@@ -253,21 +465,28 @@ public class UIManager : MonoBehaviour
 
         Button btnUp = new Button();
         btnUp.clicked += () => Game.SetTimeScale(Game.TimeScale * 2);
-        SetButtonIcon(btnUp, "circle-right", "");
+        SetButtonIcon(btnUp, "forward", "");
 
         hTimeContainer.Add(btnUp);
 
         Button btnPause = new Button();
-        SetButtonIcon(btnPause, "circle-pause", "");
+        SetButtonIcon(btnPause, "pause", "");
 
         btnPause.clicked += () => Game.TogglePaused();
 
         hTimeContainer.Add(btnPause);
-
         vTimeContainer.Add(hTimeContainer);
 
-    }
+        Button btnPassTime = new Button();
+        SetButtonIcon(btnPassTime, "circle-plus", "Pass time");
 
+        btnPassTime.clicked += () => Game.SimulationTime += 3600; // pass an hour?
+
+
+        vTimeContainer.Add(btnPassTime);
+
+    }
+    
     private void SetButtonIcon(Button btn, string name, string text)
     {
         btn.text = string.Empty;
@@ -326,7 +545,13 @@ public class UIManager : MonoBehaviour
     {
         var elements = new List<VisualElement>();
 
-        Image imgPortrait = new() { sprite = buyable.Icon };
+
+        VisualElement imgPortrait = CreateFAIcon(buyable.IconName, 128, 128);
+        imgPortrait.style.paddingLeft = 16;
+        imgPortrait.style.paddingRight = 16;
+        imgPortrait.style.paddingBottom = 16;
+        imgPortrait.style.paddingTop = 16;
+
         imgPortrait.AddToClassList("portrait");
         elements.Add(imgPortrait);
 
@@ -382,7 +607,7 @@ public class UIManager : MonoBehaviour
         Game.OnReputationChanged += (_) => UpdateBuyableUI();
         Game.OnAcquiredBuyablesChanged += (_) => UpdateBuyableUI();
 
-        var window = new WindowUI(buyable.Name, Icons[84], elements, Vector2.zero, false);
+        var window = new WindowUI(buyable.Name, CreateFAIcon("cart-shopping", 32, 32), elements, Vector2.zero, false);
         window.AddToClassList("buyable-window");
 
         window.style.position = Position.Relative;
@@ -430,6 +655,7 @@ public class UIManager : MonoBehaviour
         project.OnDurationChanged += (value) => dlBar.value = value;
 
         Label idLabel = new Label($"ProjectID: {project.Id}");
+        Label lowestPriorityLabel = new Label($"Lowest priority: {project.LowestPriority}");
         Label descLabel = new Label($"Description: {TextWrap.WrapText(project.Description, 30)}");
         Label diffLabel = new Label($"Difficulty: {project.Difficulty}");
 
@@ -448,6 +674,7 @@ public class UIManager : MonoBehaviour
 
         //elements.Add(idLabel);
         elements.Add(descLabel);
+        elements.Add(lowestPriorityLabel);
         elements.Add(diffLabel);
         elements.Add(durationLabel);
         elements.Add(payLabel);
@@ -458,7 +685,11 @@ public class UIManager : MonoBehaviour
         //project.OnDescriptionChanged += val => descLabel.text = $"Description: {val}";
         //project.OnDifficultyChanged += val => diffLabel.text = $"Difficulty: {val}";
         project.OnStatusChanged += val => statusLabel.text = $"Status: {val}";
-        project.OnTasksChanged += (tasks) => tasksLeftLabel.text = $"Tasks left: {tasks.Count}";
+        project.OnTasksChanged += (tasks) =>
+        {
+            tasksLeftLabel.text = $"Tasks left: {tasks.Count}";
+            lowestPriorityLabel.text = $"Lowest priority: {project.LowestPriority}";
+        };
 
 
         project.OnDurationChanged += (value) =>
@@ -480,7 +711,7 @@ public class UIManager : MonoBehaviour
         
         project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
 
-        var window = new WindowUI(project.Name, Icons[36], elements, new Vector2((projectIndex * 100), projectIndex * 100));
+        var window = new WindowUI(project.Name, CreateFAIcon("folder-closed", 32, 32), elements, new Vector2((projectIndex * 100), projectIndex * 100),false);
         window.AddToClassList("project-window");
 
         window.style.position = Position.Relative;
@@ -558,7 +789,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(btnSubmit);
 
-        var window = new WindowUI(project.Name, Icons[36], elements, Vector2.zero,false);
+        var window = new WindowUI(project.Name, CreateFAIcon("folder-closed", 32, 32), elements, Vector2.zero,false);
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;
         window.style.paddingLeft = 16;
@@ -637,26 +868,30 @@ public class UIManager : MonoBehaviour
             UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
         };
 
+        void UpdateWorkerContainer(string status)
+        {
+            bool show = task.CanStart;
+
+            assignableWorkerContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            assignedWorkersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            assignedWorkersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            assignWorkersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+
+        UpdateWorkerContainer(task.Status);
 
         task.OnStatusChanged += (status) =>
         {
             statusLabel.text = $"Status: {status}";
-
-            if (status == "failed" || status == "completed")
-            {
-                if (assignableWorkerContainer.parent != null)
-                    assignableWorkerContainer.RemoveFromHierarchy();
-                
-                if (assignedWorkersLabel.parent != null)
-                    assignedWorkersLabel.RemoveFromHierarchy();
-
-                if (assignedWorkersContainer.parent != null)
-                    assignedWorkersContainer.RemoveFromHierarchy();
-                
-                if (assignWorkersLabel.parent != null)
-                    assignWorkersLabel.RemoveFromHierarchy();
-            }
+            UpdateWorkerContainer(status);
         };
+
+        task.Project.OnTasksChanged += (tasks) =>
+        {
+            UpdateWorkerContainer(task.Status);
+        };
+
         task.OnWorkersChanged += (workers) =>
         {
             assignedWorkersLabel.text = $"Assigned workers: {string.Join(", ", workers.Select(w => w.Name))}";
@@ -679,7 +914,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(pBar);
 
-        var window = new WindowUI(task.Name, Icons[42], elements, new Vector2(0, /*taskIndex * 100*/ 0));
+        var window = new WindowUI($"{task.Priority}. {task.Name}", CreateFAIcon("file", 32, 32), elements, new Vector2(0, /*taskIndex * 100*/ 0),false);
 
         window.AddToClassList("task-window");
         
@@ -868,7 +1103,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        var window = new WindowUI(worker.Name, Icons[20], elements, new Vector2(0, 0));
+        var window = new WindowUI(worker.Name, CreateFAIcon("user",32,32), elements, new Vector2(0, 0),false);
 
         window.AddToClassList("worker-window");
         window.style.position = Position.Relative;
@@ -930,7 +1165,7 @@ public class UIManager : MonoBehaviour
 
 
 
-        var window = new WindowUI(worker.Name, Icons[20], elements, Vector2.zero, false);
+        var window = new WindowUI(worker.Name, CreateFAIcon("person", 32, 32), elements, Vector2.zero, false);
 
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;

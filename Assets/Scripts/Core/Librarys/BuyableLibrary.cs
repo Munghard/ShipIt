@@ -8,9 +8,9 @@ namespace Assets.Scripts.Data
 {
     internal static class BuyableLibrary
     {
-        static int stressReliefIconIndex = 9;
-        static int healthIconIndex = 21;
-        static int skillIconIndex = 93;
+        static string stressRelief = "baseball-bat-ball";
+        static string health = "bowl-food";
+        static string skill = "star";
         public static List<Buyable> GetBuyables()
         {
             return new List<Buyable>
@@ -22,7 +22,7 @@ namespace Assets.Scripts.Data
                     cost: 100,
                     reputationNeeded: 0,
                     singleBuy: false,
-                    icon: UIManager.Icons[stressReliefIconIndex],
+                    iconName: stressRelief,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Coffee Break purchased!");
@@ -40,7 +40,7 @@ namespace Assets.Scripts.Data
                     cost: 300,
                     reputationNeeded: 300,
                     singleBuy: false,
-                    icon: UIManager.Icons[stressReliefIconIndex],
+                    iconName: stressRelief,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Fun Activities purchased!");
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Data
                     cost: 250,
                     reputationNeeded: 0,
                     singleBuy: false,
-                    icon: UIManager.Icons[healthIconIndex],
+                    iconName: health,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Pizza Time purchased!");
@@ -77,7 +77,7 @@ namespace Assets.Scripts.Data
                     cost: 200,
                     reputationNeeded: 50,
                     singleBuy: false,
-                    icon: UIManager.Icons[healthIconIndex],
+                    iconName: health,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Team Lunch purchased!");
@@ -96,7 +96,7 @@ namespace Assets.Scripts.Data
                     cost: 150,
                     reputationNeeded: 100,
                     singleBuy: true,
-                    icon: UIManager.Icons[skillIconIndex],
+                    iconName: skill,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Office Plants purchased!");
@@ -115,7 +115,7 @@ namespace Assets.Scripts.Data
                     cost: 400,
                     reputationNeeded: 1000,
                     singleBuy: true,
-                    icon: UIManager.Icons[skillIconIndex],
+                    iconName: skill,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("New Coffee Machine purchased!");
@@ -133,7 +133,7 @@ namespace Assets.Scripts.Data
                     cost: 300,
                     reputationNeeded: 500,
                     singleBuy: false,
-                    icon: UIManager.Icons[stressReliefIconIndex],
+                    iconName: stressRelief,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Casual Friday purchased!");
@@ -151,7 +151,7 @@ namespace Assets.Scripts.Data
                     cost: 500,
                     reputationNeeded: 2000,
                     singleBuy: true,
-                    icon: UIManager.Icons[skillIconIndex],
+                    iconName: skill,
                     onPurchased: (Buyable buyable, Game game) =>
                     {
                         Debug.Log("Ergonomic Chairs purchased!");

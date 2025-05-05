@@ -5,13 +5,26 @@ using UnityEngine;
 public class WorkerGenerator
 {
     private readonly string[] firstNames = {
-        "John", "Jane", "Alex", "Chris", "Sam",
-        "Taylor", "Jordan", "Morgan", "Dylan", "Riley"
+    "John", "Jane", "Alex", "Chris", "Sam",
+    "Taylor", "Jordan", "Morgan", "Dylan", "Riley",
+    "Emily", "Ryan", "Lily", "Ethan", "Sophie",
+    "Ben", "Avery", "Max", "Charlie", "Olivia",
+    "Sophia", "Zoe", "Lucas", "Isaac", "Maya",
+    "Levi", "Chloe", "Wyatt", "Madison", "Aidan",
+    "Grace", "Henry", "Ella", "Jack", "Mason",
+    "Nina", "Leo", "Liam", "Scarlett", "Isaiah",
+    "Mila", "James", "Amelia", "Eli", "Luca"
     };
-
     private readonly string[] lastNames = {
-        "Smith", "Johnson", "Williams", "Brown", "Jones",
-        "Miller", "Davis", "García", "Rodriguez", "Martínez"
+    "Smith", "Johnson", "Williams", "Brown", "Jones",
+    "Miller", "Davis", "García", "Rodriguez", "Martínez",
+    "Taylor", "Anderson", "Thomas", "Jackson", "White",
+    "Harris", "Clark", "Lewis", "Walker", "Young",
+    "Allen", "King", "Scott", "Green", "Baker",
+    "Adams", "Nelson", "Hill", "Ramirez", "Carter",
+    "González", "Lopez", "Wilson", "Perez", "Roberts",
+    "Morris", "King", "Nguyen", "Mitchell", "Campbell",
+    "Parker", "Evans", "Edwards", "Collins", "Stewart"
     };
 
 
@@ -25,7 +38,10 @@ public class WorkerGenerator
         Sprites.AddRange(AllSprites); 
         Debug.Log("Portraits loaded: " + AllSprites.Count);
     }
-
+    public Sprite GetPortrait(int index)
+    {
+        return AllSprites[index];
+    }
     public Sprite GetRandomPortrait()
     {
         int index = Random.Range(0, Sprites.Count);
@@ -41,5 +57,8 @@ public class WorkerGenerator
         return first + " " + last;
     }
 
-    
+    public int GetPortraitIndex(Sprite portrait)
+    {
+        return AllSprites.IndexOf(portrait);
+    }
 }

@@ -11,10 +11,10 @@ namespace Assets.Scripts.Models
         public int Cost { get; private set; }
         public int ReputationNeeded { get; private set; }
         public bool SingleBuy { get; private set; }
-        public Sprite Icon { get; private set; }
+        public string IconName { get; private set; }
         public Action<Buyable,Game> OnPurchased { get; set; }
 
-        public Buyable(int id, string name, string description, int cost, int reputationNeeded, bool singleBuy, Sprite icon, Action<Buyable, Game> onPurchased = null)
+        public Buyable(int id, string name, string description, int cost, int reputationNeeded, bool singleBuy, string iconName, Action<Buyable, Game> onPurchased = null)
         {
             Id = id;
             Name = name;
@@ -22,7 +22,7 @@ namespace Assets.Scripts.Models
             Cost = cost;
             ReputationNeeded = reputationNeeded;
             SingleBuy = singleBuy;
-            Icon = icon;
+            IconName = iconName;
             OnPurchased = onPurchased;
         }
 

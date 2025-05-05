@@ -226,8 +226,16 @@ Label {
     height: 64;
     border-radius: 8;
     border-width: 4;
-    background-color: gray;
+    background-color: var(--primary);
     border-color: var(--secondary);
+    transition: all 0.5s ease;
+    transition-delay:1s;
+}
+.portrait:hover {
+    width: 256;
+    height: 256;
+    transition: all 1s ease;
+    /* transition-delay:1s; */
 }
 
 .truncate {

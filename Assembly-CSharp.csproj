@@ -61,23 +61,25 @@
     <Analyzer Include="F:\Unity\6000.0.34f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Core\Entities\Task.cs" />
     <Compile Include="Assets\Scripts\Utils\TextPop.cs" />
-    <Compile Include="Assets\Scripts\Models\Project.cs" />
-    <Compile Include="Assets\Scripts\Models\TaskLibrary.cs" />
-    <Compile Include="Assets\Scripts\Models\Buyable.cs" />
-    <Compile Include="Assets\Scripts\Models\Task.cs" />
-    <Compile Include="Assets\Scripts\Models\Speciality.cs" />
-    <Compile Include="Assets\Scripts\Models\BuyableLibrary.cs" />
+    <Compile Include="Assets\Scripts\Core\Entities\Buyable.cs" />
+    <Compile Include="Assets\Scripts\Core\Entities\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
+    <Compile Include="Assets\Scripts\Core\Librarys\TaskLibrary.cs" />
     <Compile Include="Assets\Scripts\UI\Draggable.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
+    <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
     <Compile Include="Assets\Scripts\Utils\PlayerInput.cs" />
-    <Compile Include="Assets\Scripts\Models\Worker.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
     <Compile Include="Assets\Scripts\Utils\PortraitData.cs" />
     <Compile Include="Assets\Scripts\Utils\TextWrap.cs" />
+    <Compile Include="Assets\Scripts\Utils\SaveManager.cs" />
+    <Compile Include="Assets\Scripts\Utils\GameData.cs" />
+    <Compile Include="Assets\Scripts\Core\Entities\Project.cs" />
+    <Compile Include="Assets\Scripts\Core\Librarys\BuyableLibrary.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -85,6 +87,7 @@
     <None Include="Assets\Resources\UI\WorkPage.uxml" />
     <None Include="Assets\Resources\UI\ShopPage.uxml" />
     <None Include="Assets\Resources\UI\ProjectsPage.uxml" />
+    <None Include="Assets\todo.txt" />
     <None Include="Assets\Resources\UI\general.uss" />
     <None Include="Assets\Resources\UI\WindowUI.uxml" />
     <None Include="Assets\Resources\UI\StaffingPage.uxml" />

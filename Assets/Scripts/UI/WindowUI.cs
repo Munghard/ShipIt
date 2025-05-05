@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class WindowUI : VisualElement
 {
 
-    public WindowUI(string headerText,Sprite sprite, List<VisualElement> elements, Vector2 position, bool draggable = true)
+    public WindowUI(string headerText,VisualElement icon, List<VisualElement> elements, Vector2 position, bool draggable = true)
     {
         // Load the UXML file and clone it
         var visualTree = Resources.Load<VisualTreeAsset>("UI/WindowUI");
@@ -25,20 +25,11 @@ public class WindowUI : VisualElement
 
         // icon
         var header = this.Q<VisualElement>("header");
-        Image icon = new()
-        {
-            sprite = sprite,
-            style = 
-            {
-                width = 32,
-                height = 32,
-                marginLeft = 9,
-                marginRight = 9,
-                marginTop = 9,
-                marginBottom = 9,
-            },
-        };
 
+        icon.style.marginBottom = 8;
+        icon.style.marginLeft = 8;
+        icon.style.marginRight = 8;
+        icon.style.marginTop = 8;
         header.Insert(0,icon);
 
         // Optionally, get references to specific elements in the UXML and add logic

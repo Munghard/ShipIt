@@ -6,6 +6,8 @@ using Assets.Scripts.Data;
 
 public class Game
 {
+    public float SimulationTime { get; set; } = 21600f;
+
     public List<Project> Projects = new();
     public List<Project> AvailableProjects = new();
     public List<Worker> Workers = new();
@@ -20,7 +22,7 @@ public class Game
     public float Reputation = 0f;
 
     public float TimeScale = 1f;
-    public float ScaledDeltaTime;
+    public float ScaledDeltaTime = 1f;
     public bool Paused = false;
 
     public TextPop textPop;
@@ -69,6 +71,8 @@ public class Game
         OnWorkersChanged?.Invoke(Workers);
         OnAvailableProjectsChanged?.Invoke(AvailableProjects);
         OnAvailableWorkersChanged?.Invoke(WorkersForHire);
+        
+        ScaledDeltaTime = Time.deltaTime * TimeScale;
 
         SetMoney(0);
         SetReputation(0);
@@ -77,8 +81,8 @@ public class Game
         RollProjects(3);
         RollBuyables(3);
 
-        var project = new Project(this, "First project", "Your entry into the working world.", 1, 3000, 100);
-        var worker = new Worker("Willy Worker",workerGenerator.GetRandomPortrait(), Specialty.Get("General"), 1, 100, project, this);
+        var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100);
+        var worker = new Worker("Willy Workman",workerGenerator.GetPortrait(133), Specialty.Get("General"), 1, 100, project, this);
         AddWorker(worker);
         AddProject(project);
 
@@ -140,8 +144,8 @@ public class Game
     {
         for (int i = 0; i < num; i++)
         {
-            float difficulty = Random.Range(1, 5);
-            float duration = Random.Range(6, 20) * 60;
+            float difficulty = Random.Range(1, Project.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
+            float duration = Random.Range(10, 20) * 60 * difficulty; // multiply time with difficulty
             float pay = (difficulty * 500) + Random.Range(50, 200);
             var project = new Project(this, "Project" + i, "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
@@ -211,6 +215,10 @@ public class Game
 
     public void RemoveProject(Project project)
     {
+        foreach (var task in project.Tasks)
+        {
+            project.RemoveTask(task);
+        }
         Projects.Remove(project);
         OnProjectsChanged.Invoke(Projects);
     }
@@ -233,24 +241,27 @@ public class Game
 
     public void UpdateGame()
     {
-        float dt = Time.deltaTime;
-        
-        ScaledDeltaTime = dt * TimeScale;
+        if (Paused) return;
 
-        Time.timeScale = TimeScale * 0.1f;
+        // Use deltaTime and TimeScale for your scaled time calculations
+        ScaledDeltaTime = Time.deltaTime * TimeScale;
+
+        // Update SimulationTime based on custom TimeScale
+        SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
+
+
         PlayerInput.UpdateInput();
 
-        if (Paused) return;
 
         foreach (var project in Projects)
         {
-            project.UpdateProject();
+            project.UpdateProject(SimulationTime);
             foreach (var task in project.Tasks)
-                task.UpdateTask();
+                task.UpdateTask(SimulationTime);
         }
 
         foreach (var worker in Workers)
-            worker.UpdateWorker();
+            worker.UpdateWorker(SimulationTime);
     }
 
     internal void AddBuyableToAcquired(Buyable buyable)

@@ -38,9 +38,9 @@ public class Worker
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
 
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game,float? health = null,float? stress = null,int? level = null, float? xp = null, long? id = null)
     {
-        Id = GenerateId();
+        Id = id ?? GenerateId();
         Name = name;
         Portrait = portrait;
         Specialty = specialty;
@@ -48,10 +48,10 @@ public class Worker
         Efficiency = efficiency;
         Project = project;
         Game = game;
-        Health = MaxHealth;
-        Stress = 0;
-        Level = 1;
-        Xp = 0;
+        Health = health ?? MaxHealth; // if health null set to max
+        Stress = stress ?? 0;
+        Level = level ?? 1; // if level null set to 1
+        Xp = xp ?? 0;
         NextXp = Mathf.Floor(100f * Mathf.Pow(Level, 1.5f));
         Status = "idle";
     }
@@ -185,9 +185,9 @@ public class Worker
         Game.textPop.New("Died!", GetWindowCenter(), Color.white);
     }
 
-    public void UpdateWorker()
+    public void UpdateWorker(float simulationTime)
     {
-        float deltaTime = Time.deltaTime;
+        float deltaTime = Game.ScaledDeltaTime;
         if (Status == "dead") return;
 
         Occupied = Task != null;
@@ -195,13 +195,13 @@ public class Worker
 
         if (Occupied && Task.Status != "completed")
         {
-            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 10;
+            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 0.5f;
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
         }
         else
         {
-            DecreaseStress(Skill * deltaTime);
+            DecreaseStress(Skill * deltaTime * 0.5f);
         }
 
         if (Stress >= MaxStress)
