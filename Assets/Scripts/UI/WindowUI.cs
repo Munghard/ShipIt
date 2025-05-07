@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 
 public class WindowUI : VisualElement
 {
-
-    public WindowUI(string headerText,VisualElement icon, List<VisualElement> elements, Vector2 position, bool draggable = true)
+    public System.Action<string> OnHeaderChanged;
+    public WindowUI(string headerText,VisualElement icon, List<VisualElement> elements, Vector2 position, bool draggable = true,bool renameable= false)
     {
         // Load the UXML file and clone it
         var visualTree = Resources.Load<VisualTreeAsset>("UI/WindowUI");
@@ -23,6 +23,8 @@ public class WindowUI : VisualElement
 
         this.Q<Label>("lblHeader").text = headerText; // Set the header text
 
+        
+
         // icon
         var header = this.Q<VisualElement>("header");
 
@@ -31,6 +33,20 @@ public class WindowUI : VisualElement
         icon.style.marginRight = 8;
         icon.style.marginTop = 8;
         header.Insert(0,icon);
+
+        if (renameable)
+        {
+            this.Q<Label>("lblHeader").RemoveFromHierarchy(); // Set the header text
+            TextField textField = new TextField();
+            textField.name = "headerText";
+            textField.value = headerText;
+            header.Insert(1, textField);
+            textField.RegisterValueChangedCallback(evt =>
+            {
+                OnHeaderChanged?.Invoke(evt.newValue);
+            });
+
+        }
 
         // Optionally, get references to specific elements in the UXML and add logic
         var closeButton = this.Q<Button>("closeButton");

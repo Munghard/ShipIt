@@ -11,7 +11,11 @@ namespace Assets.Scripts.Utils
         public float Reputation;
 
         public List<WorkerData> Workers;
+        public List<WorkerData> AvailableWorkers;
         public List<ProjectData> Projects;
+        public List<ProjectData> AvailableProjects;
+        public List<BuyableData> Shop;
+        public List<BuyableData> BoughtBuyables;
 
         public GameData() { }
     }
@@ -58,5 +62,10 @@ namespace Assets.Scripts.Utils
         public string Specialty;
         public float TimeToComplete;
         public TaskData() { }
+    }
+    [Serializable]
+    public class BuyableData
+    {
+        public int Id;
     }
 }

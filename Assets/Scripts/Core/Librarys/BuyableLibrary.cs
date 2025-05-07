@@ -11,6 +11,11 @@ namespace Assets.Scripts.Data
         static string stressRelief = "baseball-bat-ball";
         static string health = "bowl-food";
         static string skill = "star";
+
+        public static Buyable GetBuyable(int id)
+        {
+            return GetBuyables().FirstOrDefault(b=>b.Id == id);
+        }
         public static List<Buyable> GetBuyables()
         {
             return new List<Buyable>

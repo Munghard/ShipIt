@@ -15,6 +15,14 @@ namespace Assets.Scripts.Utils
             {
                 game.TogglePaused();
             }
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                game.HalveTimeScale();
+            }
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                game.DoubleTimeScale();
+            }
         }
     }
 }

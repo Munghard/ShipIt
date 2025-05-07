@@ -3,6 +3,7 @@ using Assets.Scripts.Models;
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.Data;
+using System.Linq;
 
 public class Game
 {
@@ -188,11 +189,25 @@ public class Game
         AvailableProjects.Remove(project);
         OnAvailableProjectsChanged?.Invoke(AvailableProjects);
     }
+    public void HalveTimeScale()
+    {
+        SetTimeScale(TimeScale * 0.5f);
+    }
+    public void DoubleTimeScale()
+    {
+        SetTimeScale(TimeScale * 2);
+    }
+        
     public void SetTimeScale(float scale)
     {
         TimeScale = Mathf.Clamp(scale, 0.125f, 16f);
         OnTimeScaleChanged?.Invoke(TimeScale);
     }
+    public void PassTime()
+    {
+        SimulationTime += 3600 * 6; // 6 h
+    }
+
 
     public void TogglePaused()
     {
@@ -215,7 +230,7 @@ public class Game
 
     public void RemoveProject(Project project)
     {
-        foreach (var task in project.Tasks)
+        foreach (var task in project.Tasks.ToList())
         {
             project.RemoveTask(task);
         }
@@ -241,6 +256,8 @@ public class Game
 
     public void UpdateGame()
     {
+        PlayerInput.UpdateInput();
+
         if (Paused) return;
 
         // Use deltaTime and TimeScale for your scaled time calculations
@@ -250,7 +267,6 @@ public class Game
         SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
 
 
-        PlayerInput.UpdateInput();
 
 
         foreach (var project in Projects)

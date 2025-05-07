@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\Core\Entities\Task.cs" />
     <Compile Include="Assets\Scripts\Utils\TextPop.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Buyable.cs" />
+    <Compile Include="Assets\Scripts\UI\ConfirmationWindow.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Core\Librarys\TaskLibrary.cs" />

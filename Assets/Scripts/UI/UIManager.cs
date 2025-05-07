@@ -1,4 +1,6 @@
+using Assets.Scripts.Data;
 using Assets.Scripts.Models;
+using Assets.Scripts.UI;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,19 @@ public class UIManager : MonoBehaviour
     public VisualElement shopContent;
     public VisualElement messagebox;
     public VisualElement gameButtons;
+
+
+    //GAME UI
+    Label simulationTimeLabel;
+    Label timeScaleLabel;
+    Label moneyLabel;
+    Label repLabel;
+
+    Button btnPassTime;
+    Button btnPause;
+    Button btnUp;
+    Button btnDown;
+    //GAME UI
 
     Game Game;
 
@@ -54,14 +69,20 @@ public class UIManager : MonoBehaviour
         Button btnNewGame = new();
         btnNewGame.clicked += () =>
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            ConfirmationWindow.Create(Root,() =>
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            });
         };    // Add click event handler
         SetButtonIcon(btnNewGame, "circle-play", "New game");
 
         Button btnLoad = new();
         btnLoad.clicked += () =>
         {
-            LoadGame();
+            ConfirmationWindow.Create(Root, () =>
+            {
+                LoadGame();
+            });
         };
         SetButtonIcon(btnLoad, "folder-open", "Load game");
         
@@ -69,7 +90,10 @@ public class UIManager : MonoBehaviour
         
         btnSave.clicked += () =>
         {
-            SaveGame();
+            ConfirmationWindow.Create(Root, () =>
+            {
+                SaveGame();
+            });
         };
         SetButtonIcon(btnSave, "floppy-disk", "Save game");
         gameButtons.Add(btnNewGame);
@@ -123,6 +147,11 @@ public class UIManager : MonoBehaviour
 
         Game.OnProjectsChanged += ProjectsChanged;
 
+        //foreach (var project in Game.Projects)
+        //{
+        //    project.OnTasksChanged += TasksChanged;
+        //}
+
         Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
 
         Game.OnNewWorker += NewWorkerUI;
@@ -135,6 +164,8 @@ public class UIManager : MonoBehaviour
 
         ClearContainers();
 
+        BindGameToUI(Game);
+
         GameData loadedData = SaveManager.LoadGame();
         if (loadedData != null)
         {
@@ -145,9 +176,25 @@ public class UIManager : MonoBehaviour
 
             // Clear current workers and projects in the game
             Game.Workers = new List<Worker>();  // Clear workers list
+            Game.WorkersForHire = new List<Worker>();  // Clear workers list
             Game.Projects = new List<Project>(); // Clear projects list
+            Game.AvailableProjects = new List<Project>(); // Clear projects list
+            Game.buyables = new List<Buyable>();
+            Game.acquiredBuyables = new List<Buyable>();
 
             // Reconstruct Workers from loaded data
+            foreach (var buyableData in loadedData.Shop)
+            {
+                Game.buyables.Add(BuyableLibrary.GetBuyable(buyableData.Id));
+            }
+            foreach (var buyableData in loadedData.BoughtBuyables)
+            {
+                Game.acquiredBuyables.Add(BuyableLibrary.GetBuyable(buyableData.Id));
+            }
+            UpdateShop(Game.Projects);
+
+            Game.OnAcquiredBuyablesChanged?.Invoke(Game.acquiredBuyables);
+            
             foreach (var loadedWorker in loadedData.Workers)
             {
                 Game.AddWorker(new Worker(
@@ -165,6 +212,24 @@ public class UIManager : MonoBehaviour
                     id: loadedWorker.Id
                 ));
             }
+            foreach (var loadedWorker in loadedData.AvailableWorkers)
+            {
+                Game.WorkersForHire.Add(new Worker(
+                    name: loadedWorker.Name,
+                    portrait: Game.workerGenerator.GetPortrait(loadedWorker.PortraitIndex),
+                    specialty: Specialty.Get(loadedWorker.Specialty),
+                    skill: loadedWorker.Skill,
+                    efficiency: loadedWorker.Efficiency,
+                    project: null,
+                    game: Game,
+                    health: loadedWorker.Health,
+                    stress: loadedWorker.Stress,
+                    level: loadedWorker.Level,
+                    xp: loadedWorker.Xp,
+                    id: loadedWorker.Id
+                ));
+            }
+            Game.OnAvailableWorkersChanged?.Invoke(Game.WorkersForHire);
 
             // Reconstruct Projects and their tasks
             foreach (var loadedProject in loadedData.Projects)
@@ -208,6 +273,41 @@ public class UIManager : MonoBehaviour
 
                 // Reconstruct tasks for each project
             }
+            //load availableProjects
+            foreach (var loadedProject in loadedData.AvailableProjects )
+            {
+                var tasks = new List<Task>();
+                foreach (var loadedTask in loadedProject.Tasks)
+                {
+
+                    tasks.Add(new Task(
+                        name: loadedTask.Name,
+                        description: loadedTask.Description,
+                        difficulty: loadedTask.Difficulty,
+                        specialty: Specialty.Get(loadedTask.Specialty),
+                        timeToComplete: loadedTask.TimeToComplete,
+                        project: null,
+                        game: Game,
+                        status: "pending",
+                        priority: loadedTask.Priority,
+                        progress: loadedTask.Progress
+                    ));
+                }
+                var project = new Project(
+                    game: Game,
+                    name: loadedProject.Name,
+                    description: loadedProject.Description,
+                    difficulty: loadedProject.Difficulty,
+                    duration: loadedProject.Duration,
+                    pay: loadedProject.Pay,
+                    startDuration: loadedProject.StartDuration,
+                    id: loadedProject.Id,
+                    tasks: tasks
+
+                );
+                Game.AvailableProjects.Add(project);
+                Game.OnAvailableProjectsChanged?.Invoke(Game.AvailableProjects);
+            }
         }
         Game.textPop.New("Game loaded!", Vector2.zero, Color.magenta);
         //update everything
@@ -223,8 +323,28 @@ public class UIManager : MonoBehaviour
             Money = Game.Money,
             Reputation = Game.Reputation,
             Workers = new List<WorkerData>(),
-            Projects = new List<ProjectData>()
+            Projects = new List<ProjectData>(),
+
+            AvailableProjects = new List<ProjectData>(),
+            AvailableWorkers = new List<WorkerData>(),
+            BoughtBuyables = new List<BuyableData>(),
+            Shop = new List<BuyableData>(),
+
         };
+        foreach (var buyable in Game.buyables)
+        {
+            data.Shop.Add(new BuyableData()
+            {
+                Id = buyable.Id,
+            });
+        }
+        foreach (var buyable in Game.acquiredBuyables)
+        {
+            data.BoughtBuyables.Add(new BuyableData()
+            {
+                Id = buyable.Id,
+            });
+        }
         foreach (var worker in Game.Workers)
         {
             data.Workers.Add(new WorkerData()
@@ -240,7 +360,22 @@ public class UIManager : MonoBehaviour
                 Efficiency = worker.Efficiency,
                 Xp = worker.Xp,
             });
-
+        }
+        foreach (var worker in Game.WorkersForHire)
+        {
+            data.AvailableWorkers.Add(new WorkerData()
+            {
+                Id = worker.Id,
+                Name = worker.Name,
+                Level = worker.Level,
+                Skill = worker.Skill,
+                Health = worker.Health,
+                Stress = worker.Stress,
+                PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
+                Specialty = worker.Specialty.Name,
+                Efficiency = worker.Efficiency,
+                Xp = worker.Xp,
+            });
         }
         foreach (var project in Game.Projects)
         {
@@ -270,21 +405,39 @@ public class UIManager : MonoBehaviour
                 });
             }
         }
+        foreach (var project in Game.AvailableProjects)
+        {
+            var pData = new ProjectData()
+            {
+                Name = project.Name,
+                Difficulty = project.Difficulty,
+                Description = project.Description,
+                Duration = project.Duration,
+                Id = project.Id,
+                Pay = project.Pay,
+                StartDuration = project.StartDuration,
+                Tasks = new List<TaskData>(),
+            };
+            data.AvailableProjects.Add(pData);
+            foreach (var task in project.Tasks)
+            {
+                pData.Tasks.Add(new TaskData()
+                {
+                    Name = task.Name,
+                    Progress = task.Progress,
+                    Specialty = task.Specialty.Name,
+                    Difficulty = task.Difficulty,
+                    Priority = task.Priority,
+                    Description = task.Description,
+                    TimeToComplete = task.TimeToComplete,
+                });
+            }
+        }
         // fill in data.Workers, data.Projects, etc.
         SaveManager.SaveGame(data);
         Game.textPop.New("Game saved!", Vector2.zero, Color.magenta);
     }
 
-    private void FixedUpdate()
-    {
-        var simulationTimeLabel = Root.Q<Label>("simulationTimeLabel");
-        if (simulationTimeLabel != null)
-        {
-            // Format the SimulationTime to display as a clock (HH:mm:ss)
-            TimeSpan timeSpan = TimeSpan.FromSeconds(Game.SimulationTime);
-            simulationTimeLabel.text = $"Time: {timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
-        }
-    }
     public static VisualElement CreateFAIcon(string name,int width = 32,int height = 32)
     {
         VisualElement icon = new();
@@ -337,6 +490,7 @@ public class UIManager : MonoBehaviour
     private void ProjectsChanged(List<Project> list)
     {
         projectsContent.Clear();
+        tasksContent.Clear();
         foreach (Project project in list) 
         {
             NewProjectUI(project);
@@ -350,6 +504,13 @@ public class UIManager : MonoBehaviour
     private void Update()
     {
         Game?.UpdateGame();
+        var simulationTimeLabel = Root.Q<Label>("simulationTimeLabel");
+        if (simulationTimeLabel != null && Game != null)
+        {
+            // Format the SimulationTime to display as a clock (HH:mm:ss)
+            TimeSpan timeSpan = TimeSpan.FromSeconds(Game.SimulationTime * 60);
+            simulationTimeLabel.text = $"Time: {timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+        }
     }
     private void CreateNavBar()
     {
@@ -362,6 +523,29 @@ public class UIManager : MonoBehaviour
         CreateThemeButton();
 
     }
+    public void BindGameToUI(Game game)
+    {
+        // Optional: unhook previous if needed
+        game.OnTimeScaleChanged += time => {
+            if (timeScaleLabel != null)
+                timeScaleLabel.text = $"Time scale: {time}x";
+        };
+        game.OnMoneyChanged += money => {
+            if (moneyLabel != null)
+                moneyLabel.text = $"{money}$";
+        };
+        game.OnReputationChanged += rep => {
+            if (repLabel != null)
+                repLabel.text = $"{rep} Rep";
+        };
+
+        btnPassTime.clicked += Game.PassTime; // pass 6 hours?
+        
+        btnPause.clicked += game.TogglePaused;
+        btnUp.clicked += game.DoubleTimeScale; 
+        btnDown.clicked += game.HalveTimeScale;
+
+    }
 
     private void CreateThemeButton()
     {
@@ -371,14 +555,14 @@ public class UIManager : MonoBehaviour
         btnTheme.clicked += () =>
         {
             Root.ToggleInClassList("light-theme");
-            availableProjectsContent.ToggleInClassList("light-theme");
-            //workContent.ToggleInClassList("light-theme");
-            workersContent.ToggleInClassList("light-theme");
-            staffingContent.ToggleInClassList("light-theme");
-            availableProjectsContent.ToggleInClassList("light-theme");
-            projectsContent.ToggleInClassList("light-theme");
-            tasksContent.ToggleInClassList("light-theme");
-            shopContent.ToggleInClassList("light-theme");
+            //availableProjectsContent.ToggleInClassList("light-theme");
+            ////workContent.ToggleInClassList("light-theme");
+            //workersContent.ToggleInClassList("light-theme");
+            //staffingContent.ToggleInClassList("light-theme");
+            //availableProjectsContent.ToggleInClassList("light-theme");
+            //projectsContent.ToggleInClassList("light-theme");
+            //tasksContent.ToggleInClassList("light-theme");
+            //shopContent.ToggleInClassList("light-theme");
         };
 
         navbar.Add(btnTheme);
@@ -396,13 +580,13 @@ public class UIManager : MonoBehaviour
 
         statsContainer.Add(statsLabel);
 
-        Label fundsLabel = new Label($"{Game.Money}$");
-        Game.OnMoneyChanged += (money) => fundsLabel.text = $"{Game.Money}$";
-        fundsLabel.AddToClassList("navbar-label");
+        moneyLabel = new Label($"{Game.Money}$");
+        Game.OnMoneyChanged += (money) => moneyLabel.text = $"{Game.Money}$";
+        moneyLabel.AddToClassList("navbar-label");
 
-        statsContainer.Add(fundsLabel);
+        statsContainer.Add(moneyLabel);
 
-        Label repLabel = new Label($"{Game.Reputation}Rep");
+        repLabel = new Label($"{Game.Reputation}Rep");
         Game.OnReputationChanged += (rep) => repLabel.text = $"{Game.Reputation}Rep";
         repLabel.AddToClassList("navbar-label");
 
@@ -433,7 +617,7 @@ public class UIManager : MonoBehaviour
 
         navbar.Add(vTimeContainer);
 
-        Label simulationTimeLabel = new Label($"Time: {Game.SimulationTime}")
+        simulationTimeLabel = new Label($"Time: {Game.SimulationTime}")
         {
             style =
             {
@@ -443,7 +627,7 @@ public class UIManager : MonoBehaviour
         simulationTimeLabel.name = "simulationTimeLabel";
         vTimeContainer.Add(simulationTimeLabel);
 
-        Label timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
+        timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
         {
             style =
             {
@@ -454,22 +638,23 @@ public class UIManager : MonoBehaviour
 
         timeScaleLabel.AddToClassList("navbar-label");
 
+
         vTimeContainer.Add(timeScaleLabel);
 
-        Button btnDown = new Button();
+        btnDown = new Button();
         SetButtonIcon(btnDown, "backward", "");
 
-        btnDown.clicked += () => Game.SetTimeScale(Game.TimeScale * 0.5f);
+        btnDown.clicked += () => Game.HalveTimeScale();
 
         hTimeContainer.Add(btnDown);
 
-        Button btnUp = new Button();
-        btnUp.clicked += () => Game.SetTimeScale(Game.TimeScale * 2);
+        btnUp = new Button();
+        btnUp.clicked += () => Game.DoubleTimeScale();
         SetButtonIcon(btnUp, "forward", "");
 
         hTimeContainer.Add(btnUp);
 
-        Button btnPause = new Button();
+        btnPause = new Button();
         SetButtonIcon(btnPause, "pause", "");
 
         btnPause.clicked += () => Game.TogglePaused();
@@ -477,15 +662,16 @@ public class UIManager : MonoBehaviour
         hTimeContainer.Add(btnPause);
         vTimeContainer.Add(hTimeContainer);
 
-        Button btnPassTime = new Button();
+        btnPassTime = new Button();
         SetButtonIcon(btnPassTime, "circle-plus", "Pass time");
 
-        btnPassTime.clicked += () => Game.SimulationTime += 3600; // pass an hour?
+        btnPassTime.clicked += Game.PassTime; // pass an hour?
 
 
         vTimeContainer.Add(btnPassTime);
 
     }
+
     
     private void SetButtonIcon(Button btn, string name, string text)
     {
@@ -659,10 +845,14 @@ public class UIManager : MonoBehaviour
         Label descLabel = new Label($"Description: {TextWrap.WrapText(project.Description, 30)}");
         Label diffLabel = new Label($"Difficulty: {project.Difficulty}");
 
-        TimeSpan duration = TimeSpan.FromSeconds(project.Duration);
-        TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration);
+        TimeSpan duration = TimeSpan.FromSeconds(project.Duration * 60);
+        TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration * 60);
 
-        var timeString = $"Time left: {duration.Hours}h {duration.Minutes}m {duration.Seconds}s / {startDuration.Hours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+        int totalHours = (int)duration.TotalHours;
+        int totalStartHours = (int)startDuration.TotalHours;
+
+        var timeString = $"Time left: {totalHours}h {duration.Minutes}m {duration.Seconds}s / {totalStartHours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+
 
         Label durationLabel = new Label(timeString);
         Label payLabel = new Label($"Pay: {project.Pay}");
@@ -694,10 +884,14 @@ public class UIManager : MonoBehaviour
 
         project.OnDurationChanged += (value) =>
         {
-            TimeSpan duration = TimeSpan.FromSeconds(project.Duration);
-            TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration);
+            TimeSpan duration = TimeSpan.FromSeconds(project.Duration * 60);
+            TimeSpan startDuration = TimeSpan.FromSeconds(project.StartDuration * 60);
 
-            var timeString = $"Time left: {duration.Hours}h {duration.Minutes}m {duration.Seconds}s / {startDuration.Hours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+            int totalHours = (int)duration.TotalHours;
+            int totalStartHours = (int)startDuration.TotalHours;
+
+            var timeString = $"Time left: {totalHours}h {duration.Minutes}m {duration.Seconds}s / {totalStartHours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+
 
             durationLabel.text = timeString;
         };
@@ -737,7 +931,14 @@ public class UIManager : MonoBehaviour
                 if (project.Status == "failed" || project.Status == "paid out")
                     Game.RemoveProject(project);
                 else
-                    project.TurnInProject();
+                {
+                    var chance = project.Progress / 100f;
+                    ConfirmationWindow.Create(Message: $"Chance to get paid: {chance}x, are you sure?",Parent:Root, OkCallback:() =>
+                    {
+                        project.TurnInProject();
+                    });
+
+                }
             };
 
             container.Add(btn);
@@ -842,7 +1043,7 @@ public class UIManager : MonoBehaviour
         elements.Add(assignableWorkerContainer);
 
 
-        List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
+        List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null && w.Health > 0).ToList();
         List<Worker> assignedWorkers = task.Workers.ToList();
         UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
         Game.OnNewWorker += (_worker) =>
@@ -1103,7 +1304,9 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        var window = new WindowUI(worker.Name, CreateFAIcon("user",32,32), elements, new Vector2(0, 0),false);
+        var window = new WindowUI(worker.Name, CreateFAIcon("user",32,32), elements, new Vector2(0, 0),false,true);
+
+        window.OnHeaderChanged += (value) =>  worker.Name = value;
 
         window.AddToClassList("worker-window");
         window.style.position = Position.Relative;

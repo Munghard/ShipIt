@@ -130,9 +130,24 @@ DropdownField {
     -unity-background-image-tint-color: var(--background);
 }
 
-Label {
+Label 
+{
     font-size: 20px;
     color: var(--text);
+}
+Textfield 
+{
+    font-size: 20px;
+    color: var(--text);
+}
+.unity-text-element
+{
+    font-size: 20px;
+    color: var(--text);
+}
+#unity-text-input
+{
+    background-color:clear;
 }
 
 #main {
