@@ -38,6 +38,7 @@ public class Worker
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
 
+    public float StressDecreasePerSecond => Skill * 0.5f;
     public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game,float? health = null,float? stress = null,int? level = null, float? xp = null, long? id = null)
     {
         Id = id ?? GenerateId();
@@ -201,7 +202,7 @@ public class Worker
         }
         else
         {
-            DecreaseStress(Skill * deltaTime * 0.5f);
+            DecreaseStress(StressDecreasePerSecond * deltaTime);
         }
 
         if (Stress >= MaxStress)

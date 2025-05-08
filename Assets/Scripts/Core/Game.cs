@@ -205,7 +205,17 @@ public class Game
     }
     public void PassTime()
     {
-        SimulationTime += 3600 * 6; // 6 h
+        var timeToPass = 500 * 1; // seconds
+        SimulationTime += timeToPass; // 6 h
+        foreach (var project in Projects)
+        {
+            project.Duration -= timeToPass;
+            project.OnDurationChanged?.Invoke(project.Duration);
+        }
+        foreach (var worker in Workers)
+        {
+            worker.DecreaseStress(timeToPass * worker.StressDecreasePerSecond);
+        }
     }
 
 

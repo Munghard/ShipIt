@@ -539,7 +539,13 @@ public class UIManager : MonoBehaviour
                 repLabel.text = $"{rep} Rep";
         };
 
-        btnPassTime.clicked += Game.PassTime; // pass 6 hours?
+        btnPassTime.clicked += () =>
+        {
+            ConfirmationWindow.Create(Message: $"pass time 500 are you sure?", Parent: Root, OkCallback: () =>
+            {
+                Game.PassTime(); // pass 6 hours?
+            });
+        };
         
         btnPause.clicked += game.TogglePaused;
         btnUp.clicked += game.DoubleTimeScale; 
@@ -665,7 +671,13 @@ public class UIManager : MonoBehaviour
         btnPassTime = new Button();
         SetButtonIcon(btnPassTime, "circle-plus", "Pass time");
 
-        btnPassTime.clicked += Game.PassTime; // pass an hour?
+        btnPassTime.clicked += () =>
+        {
+            ConfirmationWindow.Create(Message: $"pass time 500 are you sure?", Parent: Root, OkCallback: () =>
+            {
+                Game.PassTime(); // pass 6 hours?
+            });
+        };
 
 
         vTimeContainer.Add(btnPassTime);
