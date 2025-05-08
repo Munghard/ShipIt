@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class WindowUI : VisualElement
 {
     public System.Action<string> OnHeaderChanged;
-    public WindowUI(string headerText,VisualElement icon, List<VisualElement> elements, Vector2 position, bool draggable = true,bool renameable= false)
+    public WindowUI(string headerText, List<VisualElement> elements, Vector2 position, VisualElement icon = null, bool draggable = true,bool renameable= false, bool canMinimize = true)
     {
         // Load the UXML file and clone it
         var visualTree = Resources.Load<VisualTreeAsset>("UI/WindowUI");
@@ -21,18 +21,24 @@ public class WindowUI : VisualElement
         this.style.left = position.x;
         this.style.top = position.y;
 
-        this.Q<Label>("lblHeader").text = headerText; // Set the header text
+        var lblHeader = this.Q<Label>("lblHeader");
+        lblHeader.style.marginLeft = 30;
+        lblHeader.style.marginRight = 30;
+        lblHeader.text = headerText; // Set the header text
+
 
         
 
         // icon
         var header = this.Q<VisualElement>("header");
-
-        icon.style.marginBottom = 8;
-        icon.style.marginLeft = 8;
-        icon.style.marginRight = 8;
-        icon.style.marginTop = 8;
-        header.Insert(0,icon);
+        if(icon != null)
+        {
+            icon.style.marginBottom = 8;
+            icon.style.marginLeft = 8;
+            icon.style.marginRight = 8;
+            icon.style.marginTop = 8;
+            header.Insert(0,icon);
+        }
 
         if (renameable)
         {
@@ -71,13 +77,21 @@ public class WindowUI : VisualElement
             Debug.LogError("Container not found!");
         }
         var minimize = this.Q<Button>("btnMin"); // Set the header text
-        if (minimize != null)
+
+        if(canMinimize)
         {
-            minimize.clicked += () =>
+            if (minimize != null)
             {
-                container.style.display = container.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None;
-                minimize.text = minimize.text == "-" ? "+" : "-";
-            };
+                minimize.clicked += () =>
+                {
+                    container.style.display = container.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None;
+                    minimize.text = minimize.text == "-" ? "+" : "-";
+                };
+            }
+        }
+        else
+        {
+            minimize.RemoveFromHierarchy();
         }
 
         if(draggable) Draggable.MakeDraggable(this);

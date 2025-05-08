@@ -3,18 +3,12 @@ using UnityEngine.UIElements;
 using System.Collections.Generic;
 namespace Assets.Scripts.UI
 {
-    internal class ConfirmationWindow
+    internal class PauseWindow
     {
-        public static WindowUI Create(VisualElement Parent, System.Action OkCallback, System.Action NoCallback = null, string Message = null)
+        public static VisualElement Create(VisualElement Parent, System.Action OkCallback)
         {
             var elements = new List<VisualElement>();
-            var label = new Label("Are you sure you want to proceed?");
-            if(Message != null)
-            {
-                label.text = Message;
-            }
-            elements.Add(label);
-
+            
             WindowUI window = null;
             VisualElement blocker = null;
 
@@ -26,15 +20,11 @@ namespace Assets.Scripts.UI
             var yesButton = new Button(() => {
                 OkCallback?.Invoke();
                 DestroyWindow();
-            }) { text = "Yes" };
-            var noButton = new Button(() => {
-                NoCallback?.Invoke();
-                DestroyWindow();
-            }) { text = "No" };
+            }) { text = "Continue" };
+            
 
             var buttonContainer = new VisualElement();
             buttonContainer.Add(yesButton);
-            buttonContainer.Add(noButton);
             buttonContainer.style.flexDirection = FlexDirection.Row;
             buttonContainer.style.justifyContent = Justify.Center;
             buttonContainer.style.marginTop = 10;
@@ -44,7 +34,7 @@ namespace Assets.Scripts.UI
 
             elements.Add(buttonContainer);
 
-            window = new WindowUI("Confirmation", elements, new Vector2(0, 0), icon: UIManager.CreateFAIcon("circle-question"), false, false);
+            window = new WindowUI("Paused", elements, new Vector2(0, 0), null, false, false, false);
             
             window.style.position = Position.Absolute;
             window.style.top = Length.Percent(50);
@@ -62,9 +52,10 @@ namespace Assets.Scripts.UI
             blocker.pickingMode = PickingMode.Position; // blocks mouse input
 
             Parent.Add(blocker);
-            Parent.Add(window);
+            blocker.Add(window);
 
-            return window;
+
+            return blocker;
         }
     }
 }

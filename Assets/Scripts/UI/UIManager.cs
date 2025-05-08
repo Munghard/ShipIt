@@ -39,7 +39,7 @@ public class UIManager : MonoBehaviour
 
     Game Game;
 
-    VisualElement Root;
+    public VisualElement Root;
 
     public static List<Sprite> Icons;
 
@@ -51,7 +51,7 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        Game = new Game();
+        Game = new Game(this);
 
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
@@ -139,7 +139,7 @@ public class UIManager : MonoBehaviour
 
     private void LoadGame()
     {
-        Game = new Game();
+        Game = new Game(this);
 
         Game.OnNewProject += NewProjectUI;
 
@@ -541,9 +541,9 @@ public class UIManager : MonoBehaviour
 
         btnPassTime.clicked += () =>
         {
-            ConfirmationWindow.Create(Message: $"pass time 500 are you sure?", Parent: Root, OkCallback: () =>
+            ConfirmationWindow.Create(Message: $"passing 4 hours, are you sure?", Parent: Root, OkCallback: () =>
             {
-                Game.PassTime(); // pass 6 hours?
+                Game.PassTime(60 * 4); // pass 4 hours?
             });
         };
         
@@ -673,9 +673,9 @@ public class UIManager : MonoBehaviour
 
         btnPassTime.clicked += () =>
         {
-            ConfirmationWindow.Create(Message: $"pass time 500 are you sure?", Parent: Root, OkCallback: () =>
+            ConfirmationWindow.Create(Message: $"passing 4 hours, are you sure?", Parent: Root, OkCallback: () =>
             {
-                Game.PassTime(); // pass 6 hours?
+                Game.PassTime(60 * 4); // pass 4 hours?
             });
         };
 
@@ -805,7 +805,7 @@ public class UIManager : MonoBehaviour
         Game.OnReputationChanged += (_) => UpdateBuyableUI();
         Game.OnAcquiredBuyablesChanged += (_) => UpdateBuyableUI();
 
-        var window = new WindowUI(buyable.Name, CreateFAIcon("cart-shopping", 32, 32), elements, Vector2.zero, false);
+        var window = new WindowUI(buyable.Name, elements, Vector2.zero, CreateFAIcon("cart-shopping", 32, 32), false);
         window.AddToClassList("buyable-window");
 
         window.style.position = Position.Relative;
@@ -917,7 +917,7 @@ public class UIManager : MonoBehaviour
         
         project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
 
-        var window = new WindowUI(project.Name, CreateFAIcon("folder-closed", 32, 32), elements, new Vector2((projectIndex * 100), projectIndex * 100),false);
+        var window = new WindowUI(project.Name, elements, new Vector2((projectIndex * 100), projectIndex * 100), CreateFAIcon("folder-closed", 32, 32),false);
         window.AddToClassList("project-window");
 
         window.style.position = Position.Relative;
@@ -1002,7 +1002,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(btnSubmit);
 
-        var window = new WindowUI(project.Name, CreateFAIcon("folder-closed", 32, 32), elements, Vector2.zero,false);
+        var window = new WindowUI(project.Name, elements, Vector2.zero, CreateFAIcon("folder-closed", 32, 32),false);
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;
         window.style.paddingLeft = 16;
@@ -1127,7 +1127,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(pBar);
 
-        var window = new WindowUI($"{task.Priority}. {task.Name}", CreateFAIcon("file", 32, 32), elements, new Vector2(0, /*taskIndex * 100*/ 0),false);
+        var window = new WindowUI($"{task.Priority}. {task.Name}", elements, new Vector2(0, 0), CreateFAIcon("file", 32, 32),false);
 
         window.AddToClassList("task-window");
         
@@ -1316,7 +1316,7 @@ public class UIManager : MonoBehaviour
 
         elements.Add(eBar);
 
-        var window = new WindowUI(worker.Name, CreateFAIcon("user",32,32), elements, new Vector2(0, 0),false,true);
+        var window = new WindowUI(worker.Name, elements, new Vector2(0, 0), CreateFAIcon("user", 32, 32),false,true);
 
         window.OnHeaderChanged += (value) =>  worker.Name = value;
 
@@ -1380,7 +1380,7 @@ public class UIManager : MonoBehaviour
 
 
 
-        var window = new WindowUI(worker.Name, CreateFAIcon("person", 32, 32), elements, Vector2.zero, false);
+        var window = new WindowUI(worker.Name, elements, Vector2.zero, CreateFAIcon("person", 32, 32), false);
 
         window.style.position = Position.Relative;
         window.style.paddingRight = 16;

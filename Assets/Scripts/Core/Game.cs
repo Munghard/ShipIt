@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.Data;
 using System.Linq;
+using UnityEngine.VFX;
+using UnityEngine.UIElements;
+using Assets.Scripts.UI;
 
 public class Game
 {
-    public float SimulationTime { get; set; } = 21600f;
+    public float SimulationTime { get; set; } = 3600;
 
     public List<Project> Projects = new();
     public List<Project> AvailableProjects = new();
@@ -52,7 +55,8 @@ public class Game
     public System.Action<List<Worker>> OnAvailableWorkersChanged;
 
     PlayerInput PlayerInput;
-    public Game()
+    UIManager UIManager;
+    public Game(UIManager uIManager)
     {
         PlayerInput = new(this);
         textPop = new TextPop();
@@ -60,6 +64,7 @@ public class Game
         workerGenerator = new WorkerGenerator();
         Load();
         Debug.Log("New game instance created");
+        UIManager = uIManager;
     }
     public void NewGame()
     {
@@ -203,9 +208,8 @@ public class Game
         TimeScale = Mathf.Clamp(scale, 0.125f, 16f);
         OnTimeScaleChanged?.Invoke(TimeScale);
     }
-    public void PassTime()
+    public void PassTime(float timeToPass)
     {
-        var timeToPass = 500 * 1; // seconds
         SimulationTime += timeToPass; // 6 h
         foreach (var project in Projects)
         {
@@ -218,14 +222,19 @@ public class Game
         }
     }
 
-
+    VisualElement PauseWindow;
     public void TogglePaused()
     {
+        
         Paused = !Paused;
         if (Paused)
         {
-            Vector2 center = new Vector2(Screen.width / 2, Screen.height / 2);
-            textPop.New("Paused!", center, Color.white);
+            PauseWindow = Assets.Scripts.UI.PauseWindow.Create(UIManager.Root,()=> Paused = !Paused);
+            //textPop.New("Paused!", Vector2.zero, Color.white);
+        }
+        else
+        {
+            if(PauseWindow != null) PauseWindow.RemoveFromHierarchy();
         }
     }
 

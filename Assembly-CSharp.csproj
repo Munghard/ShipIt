@@ -72,6 +72,7 @@
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
+    <Compile Include="Assets\Scripts\UI\PauseWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
     <Compile Include="Assets\Scripts\Utils\PlayerInput.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
