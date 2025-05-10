@@ -28,7 +28,15 @@ namespace Assets.Scripts.Models
 
         public bool CanPurchase(int money, int reputation)
         {
-            return money >= Cost && reputation >= ReputationNeeded;
+            return HasMoney(money) && HasRep(reputation);
+        }
+        public bool HasMoney(int money)
+        {
+            return money >= Cost;
+        }
+        public bool HasRep(int reputation)
+        {
+            return reputation >= ReputationNeeded;
         }
 
         public void Purchase(Game game)

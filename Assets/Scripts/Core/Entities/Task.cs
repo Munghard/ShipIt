@@ -6,7 +6,7 @@ public class Task
     public int Id;
     public string Name;
     public string Description;
-    public float Difficulty;
+    public int Difficulty;
     public float TimeToComplete;
     public Specialty Specialty;
     public float Progress;
@@ -24,7 +24,7 @@ public class Task
     public System.Action<List<Worker>> OnWorkersChanged;
     public System.Action<Task> OnCompleted;
 
-    public Task(string name, string description, float difficulty, Specialty specialty, float timeToComplete, Project project,Game game, string status, int priority, float progress)
+    public Task(string name, string description, int difficulty, Specialty specialty, float timeToComplete, Project project,Game game, string status, int priority, float progress)
     {
         Id = Random.Range(1, 10000);
         Name = name;

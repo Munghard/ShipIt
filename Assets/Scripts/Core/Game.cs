@@ -21,9 +21,9 @@ public class Game
     public List<Buyable> acquiredBuyables = new();
 
 
-    public float Money = 0f;
+    public int Money = 0;
 
-    public float Reputation = 0f;
+    public int Reputation = 0;
 
     public float TimeScale = 1f;
     public float ScaledDeltaTime = 1f;
@@ -100,42 +100,46 @@ public class Game
         buyables = BuyableLibrary.GetBuyables();
     }
 
-    public void SetReputation(float amount)
+    public void SetReputation(int amount)
     {
         Reputation = amount;
         OnReputationChanged?.Invoke(Reputation);
     }
-    public void ReduceReputation(float amount)
+    public void ReduceReputation(int amount)
     {
         Reputation -= amount;
         OnReputationChanged?.Invoke(Reputation);
     }
-    public void GainReputation(float amount)
+    public void GainReputation(int amount)
     {
         Reputation += amount;
         OnReputationChanged?.Invoke(Reputation);
     }
-    public bool HasReputation(float amount)
+    public bool HasReputation(int amount)
     {
         return Reputation >= amount;
     }
 
-    public void SetMoney(float amount)
+    public void SetMoney(int amount)
     {
         Money = amount;
         OnMoneyChanged?.Invoke(Money);
     }
-    public void SpendMoney(float amount)
+    public void SpendMoney(int amount)
     {
         Money -= amount;
         OnMoneyChanged?.Invoke(Money);
+        textPop.New($"-{amount}$", new Vector2(Screen.width / 2, Screen.height / 2), Color.cyan);
+        AudioManager.Play("SpendMoney");
     }
-    public void GainMoney(float amount)
+    public void GainMoney(int amount, string reason)
     {
         Money += amount;
         OnMoneyChanged?.Invoke(Money);
+        textPop.New($"{reason} +{amount}$", new Vector2(Screen.width / 2, Screen.height / 2), Color.cyan);
+        AudioManager.Play("GetMoney");
     }
-    public bool HasMoney(float amount)
+    public bool HasMoney(int amount)
     {
         return Money >= amount;
     }
@@ -148,11 +152,12 @@ public class Game
 
     public void RollProjects(int num)
     {
+        AvailableProjects = new List<Project>(); // clear old projects
         for (int i = 0; i < num; i++)
         {
-            float difficulty = Random.Range(1, Project.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
+            int difficulty = Random.Range(1, Project.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
             float duration = Random.Range(10, 20) * 60 * difficulty; // multiply time with difficulty
-            float pay = (difficulty * 500) + Random.Range(50, 200);
+            int pay = (Mathf.FloorToInt(difficulty * 500)) + Random.Range(50, 200);
             var project = new Project(this, "Project" + i, "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
         }
@@ -161,6 +166,7 @@ public class Game
 
     public void RollWorkersForHire(int num)
     {
+        WorkersForHire = new List<Worker>(); // clear old workers
         for (int i = 0; i < num; i++)
         {
             float totalSkill = 0;
@@ -242,7 +248,7 @@ public class Game
     {
         Debug.Log($"Project {project.Name} completed!");
         textPop.New("Project completed!", project.GetWindowCenter(), Color.green);
-        GainReputation(project.Difficulty * 100);
+        GainReputation(Mathf.FloorToInt(project.Difficulty * 100));
         RollWorkersForHire(3);
         RollProjects(3);
     }
@@ -272,7 +278,7 @@ public class Game
         OnNewWorker?.Invoke(worker);
         OnWorkersChanged?.Invoke(Workers);
     }
-
+    private float repTimer = 0f;
     public void UpdateGame()
     {
         PlayerInput.UpdateInput();
@@ -285,7 +291,12 @@ public class Game
         // Update SimulationTime based on custom TimeScale
         SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
 
-
+        repTimer += ScaledDeltaTime;
+        while (repTimer >= 5f) // lose 1 rep every 5 seconds
+        {
+            repTimer = 0f;
+            if(Reputation > 0)ReduceReputation(1);
+        }
 
 
         foreach (var project in Projects)

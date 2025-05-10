@@ -7,18 +7,18 @@ public class Project
 {
     public string Name;
     public string Description;
-    public float Difficulty;
+    public int Difficulty;
     public float Duration;
     public float Progress;
-    public float ReputationNeeded;
-    public float ReputationGain;
+    public int ReputationNeeded;
+    public int ReputationGain;
     public List<Task> Tasks = new();
     public int StartingTasks;
     public string Status;
     public int Id;
     public float LowestPriority;
     public float StartDuration;
-    public float Pay;
+    public int Pay;
 
     public float WindowX, WindowY, WindowW, WindowH;
     public Texture2D Icon;
@@ -33,7 +33,7 @@ public class Project
     public System.Action<Project> OnCompleted;
     public System.Action<Project> OnFailed;
 
-    public Project(Game game, string name, string description, float difficulty, float duration, float? pay = null,float? startDuration = null, int? id = null,List<Task> tasks = null)
+    public Project(Game game, string name, string description, int difficulty, float duration, int? pay = null,float? startDuration = null, int? id = null,List<Task> tasks = null)
     {
         this.Game = game;
         Id = id?? UnityEngine.Random.Range(1, 10000);
@@ -41,10 +41,10 @@ public class Project
         Description = description;
         Difficulty = difficulty;
         Duration = duration;
-        ReputationNeeded = ReputationNeededFromLevelFormula(difficulty);
-        ReputationGain = (difficulty) * 100;
+        ReputationNeeded = (int)ReputationNeededFromLevelFormula(difficulty);
+        ReputationGain = (int)(difficulty) * 100;
         StartDuration = startDuration ?? duration;
-        Pay = pay ?? difficulty * 1000;
+        Pay = pay ?? Mathf.FloorToInt(difficulty * 1000);
         Status = "pending";
         Icon = game.iconManager.GetIcon(32).SheetTexture;
         Tasks = new List<Task>(); // Initialize Tasks first
@@ -55,13 +55,13 @@ public class Project
         } 
     }
 
-    public static float ReputationNeededFromLevelFormula(float difficulty)
+    public static int ReputationNeededFromLevelFormula(int difficulty)
     {
         return (difficulty - 1) * 500;
     }
-    public static float DifficultyFromReputation(float reputation)
+    public static int DifficultyFromReputation(int reputation)
     {
-        return (reputation / 500f) + 1f;
+        return Mathf.FloorToInt(((float)reputation / 500f) + 1);
     }
 
     private void SetStatus(string status)
@@ -77,7 +77,7 @@ public class Project
 
         int maxTasks = Mathf.Clamp((int)Difficulty * 2, 1, allTasks.Count);
 
-        foreach (var def in allTasks.OrderBy(_ => UnityEngine.Random.value).Take(maxTasks))
+        foreach (var def in allTasks.Where(t=>t.Difficulty <= Difficulty).OrderBy(_ => UnityEngine.Random.value).Take(maxTasks))
         {
             var task = new Task(
                 name: def.Name,
@@ -136,7 +136,7 @@ public class Project
     public void CompleteTask(Task task)
     {
         //Game.textPop.New("Task completed!", GetWindowCenter(), Color.yellow);
-
+        if (task.Priority == LowestPriority) Game.GainMoney(task.Difficulty * 100,"Bonus"); // Give BONUS
         foreach (var worker in Game.Workers)
         {
             int workerCount = Mathf.Max(1, task.Workers.Count);
@@ -206,7 +206,7 @@ public class Project
             worker.DecreaseStress(50);
         }
 
-        Game.GainMoney(Pay);
+        Game.GainMoney(Pay,"Project completion");
         Game.GainReputation(ReputationGain);
         
         SetStatus("paid out");

@@ -18,7 +18,7 @@ public class Worker
     public string Status;
     public int TasksCompleted;
     public int TasksFailed;
-    public int HiringCost => Level * 100;
+    public int HiringCost;
 
     public Sprite Portrait;
 
@@ -55,6 +55,7 @@ public class Worker
         Xp = xp ?? 0;
         NextXp = Mathf.Floor(100f * Mathf.Pow(Level, 1.5f));
         Status = "idle";
+        HiringCost = Mathf.FloorToInt((Level + Random.value) * 500f);
     }
 
     private long GenerateId()
@@ -97,7 +98,7 @@ public class Worker
     {
         TasksCompleted++;
         DecreaseStress(task.Difficulty * 5);
-        GainXp(task.Difficulty * task.TimeToComplete);
+        GainXp(task.Difficulty * task.TimeToComplete * 10);
         //RemoveFromTask(); // already called in task
     }
 
@@ -196,7 +197,7 @@ public class Worker
 
         if (Occupied && Task.Status != "completed")
         {
-            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 0.5f;
+            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 2f;
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
         }

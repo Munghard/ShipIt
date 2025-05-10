@@ -43,6 +43,21 @@ Button {
     flex-basis: auto;
     width: auto;
 }
+.button-small {
+    background-color: var(--header);
+    height: 25px;
+    font-size: 16px;
+    color: white;
+    font-weigth: 800;
+    border-radius: 5px;
+    border-color: var(--border);
+    border-width: 2px;
+    margin: 5px;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+    width: auto;
+}
 
 Button:hover {
     background-color: var(--primary-hover);
@@ -122,7 +137,13 @@ DropdownField {
 .unity-progress-bar__progress {
     border-radius: 8px;
 }
-
+.unity-progress-bar__title{ 
+    color:gray;
+}
+.info-label{
+    background-color: var(--background);
+    border-radius: 8px;
+}
 .tile-background {
     background-image: url("project://database/Assets/Resources/textures/grid.png?fileID=2800000&guid=faed36ecf1e594e4a8ccd180140e96b6&type=3#grid");
     background-repeat: repeat;
@@ -237,8 +258,8 @@ Textfield
 }
 
 .portrait {
-    width: 64;
-    height: 64;
+    width: 150;
+    height: 150;
     border-radius: 8;
     border-width: 4;
     background-color: var(--primary);
@@ -246,12 +267,12 @@ Textfield
     transition: all 0.5s ease;
     transition-delay:1s;
 }
-.portrait:hover {
-    width: 256;
-    height: 256;
-    transition: all 1s ease;
-    /* transition-delay:1s; */
-}
+/* .portrait:hover { */
+/*     width: 256; */
+/*     height: 256; */
+/*     transition: all 1s ease; */
+/*     /* transition-delay:1s; */ */
+/* } */
 
 .truncate {
     text-overflow: ellipsis;
@@ -259,12 +280,18 @@ Textfield
     overflow: hidden;
 }
 
-.assign-worker:hover {
+.assign-worker {
     border-color: green;
 }
+.assign-worker:hover {
+    border-color: chartreuse;
+}
 
-.un-assign-worker:hover {
+.un-assign-worker {
     border-color: red;
+}
+.un-assign-worker:hover {
+    border-color: pink;
 }
 
 .content {
@@ -342,3 +369,4 @@ Textfield
 .unity-base-slider__tracker{
     background-color: var(--window);
 }
+

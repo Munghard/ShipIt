@@ -24,6 +24,7 @@ public class WindowUI : VisualElement
         var lblHeader = this.Q<Label>("lblHeader");
         lblHeader.style.marginLeft = 30;
         lblHeader.style.marginRight = 30;
+        lblHeader.style.alignSelf = Align.Center;
         lblHeader.text = headerText; // Set the header text
 
 
@@ -46,6 +47,9 @@ public class WindowUI : VisualElement
             TextField textField = new TextField();
             textField.name = "headerText";
             textField.value = headerText;
+            textField.style.marginLeft = 5;
+            textField.style.marginRight = 5;
+            textField.style.alignSelf = Align.Center;
             header.Insert(1, textField);
             textField.RegisterValueChangedCallback(evt =>
             {
@@ -53,6 +57,8 @@ public class WindowUI : VisualElement
             });
 
         }
+
+        
 
         // Optionally, get references to specific elements in the UXML and add logic
         var closeButton = this.Q<Button>("closeButton");
@@ -93,8 +99,9 @@ public class WindowUI : VisualElement
         {
             minimize.RemoveFromHierarchy();
         }
+        if (header.childCount == 1) header.style.justifyContent = Justify.Center; // center if only one element in header
 
-        if(draggable) Draggable.MakeDraggable(this);
+        if (draggable) Draggable.MakeDraggable(this);
     }
 
 }

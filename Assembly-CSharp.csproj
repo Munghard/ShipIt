@@ -72,6 +72,7 @@
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
+    <Compile Include="Assets\Scripts\Utils\AudioManager.cs" />
     <Compile Include="Assets\Scripts\UI\PauseWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
     <Compile Include="Assets\Scripts\Utils\PlayerInput.cs" />
@@ -87,12 +88,17 @@
   <ItemGroup>
     <None Include="Assets\Resources\UI\MainUI.uxml" />
     <None Include="Assets\Resources\UI\WorkPage.uxml" />
+    <None Include="Assets\Resources\UI\TestingTemplates\worker.uxml" />
+    <None Include="Assets\Resources\UI\TestingTemplates\project.uxml" />
     <None Include="Assets\Resources\UI\ShopPage.uxml" />
     <None Include="Assets\Resources\UI\ProjectsPage.uxml" />
+    <None Include="Assets\Resources\UI\TestingTemplates\testBlock.uxml" />
     <None Include="Assets\todo.txt" />
     <None Include="Assets\Resources\UI\general.uss" />
     <None Include="Assets\Resources\UI\WindowUI.uxml" />
     <None Include="Assets\Resources\UI\StaffingPage.uxml" />
+    <None Include="Assets\Resources\UI\TestingTemplates\upgrade.uxml" />
+    <None Include="Assets\Resources\UI\TestingTemplates\task.uxml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

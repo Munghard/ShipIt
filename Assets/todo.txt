@@ -5,3 +5,12 @@ Editable names on workers done
 saving for other pages done
 
 avaialble project tasks broken when taking on
+
+give full project progress from tasks, makes it more of a gamble.
+consider removing priority lock to encourage completing easy tasks first
+
+staffing deosnt update on moneychanged
+
+change task ui to have a workers container and worker buttons that change border color on assigned and un assigned
+
+maybe you get a bonus if you complete the correct priority task like difficulty * 100$

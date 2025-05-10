@@ -5,7 +5,6 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -171,8 +170,8 @@ public class UIManager : MonoBehaviour
         {
             // Set loaded data to game state
             Game.SimulationTime = loadedData.SimulationTime;
-            Game.Money = loadedData.Money;
-            Game.Reputation = loadedData.Reputation;
+            Game.SetMoney(loadedData.Money);
+            Game.SetReputation(loadedData.Reputation);
 
             // Clear current workers and projects in the game
             Game.Workers = new List<Worker>();  // Clear workers list
@@ -305,6 +304,10 @@ public class UIManager : MonoBehaviour
                     tasks: tasks
 
                 );
+                foreach(var task in project.Tasks)
+                {
+                    task.Project = project;
+                }
                 Game.AvailableProjects.Add(project);
                 Game.OnAvailableProjectsChanged?.Invoke(Game.AvailableProjects);
             }
@@ -588,12 +591,14 @@ public class UIManager : MonoBehaviour
 
         moneyLabel = new Label($"{Game.Money}$");
         Game.OnMoneyChanged += (money) => moneyLabel.text = $"{Game.Money}$";
+        moneyLabel.style.color = Color.green;
         moneyLabel.AddToClassList("navbar-label");
 
         statsContainer.Add(moneyLabel);
 
         repLabel = new Label($"{Game.Reputation}Rep");
         Game.OnReputationChanged += (rep) => repLabel.text = $"{Game.Reputation}Rep";
+        repLabel.style.color = Color.yellow;
         repLabel.AddToClassList("navbar-label");
 
         statsContainer.Add(repLabel);
@@ -669,7 +674,7 @@ public class UIManager : MonoBehaviour
         vTimeContainer.Add(hTimeContainer);
 
         btnPassTime = new Button();
-        SetButtonIcon(btnPassTime, "circle-plus", "Pass time");
+        SetButtonIcon(btnPassTime, "forward-fast", "Pass time");
 
         btnPassTime.clicked += () =>
         {
@@ -680,7 +685,7 @@ public class UIManager : MonoBehaviour
         };
 
 
-        vTimeContainer.Add(btnPassTime);
+        hTimeContainer.Add(btnPassTime);
 
     }
 
@@ -757,9 +762,11 @@ public class UIManager : MonoBehaviour
         Label descriptionLabel = new Label($"Description: {TextWrap.WrapText(buyable.Description, 30)}");
         Label costLabel = new Label($"Cost: {buyable.Cost}$");
         Label reputationLabel = new Label($"Reputation needed: {buyable.ReputationNeeded}");
+        Label permanenceLabel = new Label($"Permanent: {buyable.SingleBuy}");
 
         elements.Add(nameLabel);
         elements.Add(descriptionLabel);
+        elements.Add(permanenceLabel);
         elements.Add(costLabel);
         elements.Add(reputationLabel);
 
@@ -770,10 +777,14 @@ public class UIManager : MonoBehaviour
         void UpdateBuyableUI()
         {
             bool acquired = Game.acquiredBuyables.Contains(buyable) && buyable.SingleBuy;
-            bool canBuy = buyable.CanPurchase((int)Game.Money, (int)Game.Reputation);
+            
+            bool canBuy = buyable.CanPurchase(Game.Money, Game.Reputation);
+            bool hasRep = buyable.HasRep(Game.Reputation);
+            bool hasMoney = buyable.HasMoney(Game.Money);
 
-            costLabel.style.color = canBuy ? Color.green : Color.red;
-            reputationLabel.style.color = canBuy ? Color.green : Color.red;
+            costLabel.style.color = hasMoney ? Color.green : Color.red;
+
+            reputationLabel.style.color = hasRep ? Color.green : Color.red;
 
             if (!acquired)
             {
@@ -786,6 +797,7 @@ public class UIManager : MonoBehaviour
             }
             else
             {
+                elements.Add(new Label("Already acquired."));
                 elements.Remove(btnSubmit);
                 if (!elements.Contains(purchasedLabel))
                     elements.Add(purchasedLabel);
@@ -902,7 +914,7 @@ public class UIManager : MonoBehaviour
             int totalHours = (int)duration.TotalHours;
             int totalStartHours = (int)startDuration.TotalHours;
 
-            var timeString = $"Time left: {totalHours}h {duration.Minutes}m {duration.Seconds}s / {totalStartHours}h {startDuration.Minutes}m {startDuration.Seconds}s";
+            var timeString = $"Time left: {totalHours}h {duration.Minutes}m / {totalStartHours}h {startDuration.Minutes}m";
 
 
             durationLabel.text = timeString;
@@ -917,7 +929,7 @@ public class UIManager : MonoBehaviour
         
         project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
 
-        var window = new WindowUI(project.Name, elements, new Vector2((projectIndex * 100), projectIndex * 100), CreateFAIcon("folder-closed", 32, 32),false);
+        var window = new WindowUI(project.Name, elements, Vector2.zero, CreateFAIcon("folder-closed", 32, 32),false);
         window.AddToClassList("project-window");
 
         window.style.position = Position.Relative;
@@ -945,7 +957,7 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     var chance = project.Progress / 100f;
-                    ConfirmationWindow.Create(Message: $"Chance to get paid: {chance}x, are you sure?",Parent:Root, OkCallback:() =>
+                    ConfirmationWindow.Create(Message: $"Chance to get paid: {chance * 100f}%, are you sure?",Parent:Root, OkCallback:() =>
                     {
                         project.TurnInProject();
                     });
@@ -975,6 +987,7 @@ public class UIManager : MonoBehaviour
         Label tasksLeftLabel = new Label($"Tasks left: {project.Tasks.Count}");
         Label repGainLabel = new Label($"Reputation gain: {project.ReputationGain}");
         Label repNeededLabel = new Label($"Reputation needed: {project.ReputationNeeded}");
+
 
         //elements.Add(idLabel);
         elements.Add(descLabel);
@@ -1017,6 +1030,7 @@ public class UIManager : MonoBehaviour
     }
     private void NewTaskUI(Task task)
     {
+        //if (task == null || task.Project == null || task.Project.Tasks.Count <= 0) return;
         int taskIndex = task.Project.Tasks.IndexOf(task);
 
         var elements = new List<VisualElement>();
@@ -1028,16 +1042,13 @@ public class UIManager : MonoBehaviour
         Label priorityLabel = new Label($"Priority: {task.Priority}");
         Label specLabel = new Label($"Speciality: {task.Specialty.Name}");
         Label statusLabel = new Label($"Status: {task.Status}");
-        Label assignedWorkersLabel = new Label($"Assigned workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
-        Label assignWorkersLabel = new Label($"Assign workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
+        Label workersLabel = new Label($"Workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
 
-        VisualElement assignableWorkerContainer = new VisualElement();
-        assignableWorkerContainer.name = "workerContainer";
-        assignableWorkerContainer.style.flexDirection = FlexDirection.Row;
         
-        VisualElement assignedWorkersContainer = new VisualElement();
-        assignedWorkersContainer.name = "assignedWorkersContainer";
-        assignedWorkersContainer.style.flexDirection = FlexDirection.Row;
+        VisualElement workersContainer = new VisualElement();
+        workersContainer.name = "WorkersContainer";
+        workersContainer.style.flexDirection = FlexDirection.Row;
+        workersContainer.style.display = DisplayStyle.Flex;
 
 
         //elements.Add(idLabel);
@@ -1048,47 +1059,23 @@ public class UIManager : MonoBehaviour
         elements.Add(specLabel);
         elements.Add(statusLabel);
 
-        elements.Add(assignedWorkersLabel);
-        elements.Add(assignedWorkersContainer);
+        elements.Add(workersContainer);
 
-        elements.Add(assignWorkersLabel);
-        elements.Add(assignableWorkerContainer);
+        
+        UpdateTaskWorkers(task, workersContainer, Game.Workers);
 
 
-        List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null && w.Health > 0).ToList();
-        List<Worker> assignedWorkers = task.Workers.ToList();
-        UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
-        Game.OnNewWorker += (_worker) =>
-        {
-            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
-            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
-            List<Worker> assignedWorkers = task.Workers.ToList();
-            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
-        };
-        Game.OnWorkerAssigned += (_worker) =>
-        {
-            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
-            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
-            List<Worker> assignedWorkers = task.Workers.ToList();
-            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
-        };
-
-        Game.OnWorkerFreed += (_worker) =>
-        {
-            List<Worker> availableWorkers = Game.Workers.Where(w => w.Task == null).ToList();
-            UpdateAssignableWorkers(task, assignableWorkerContainer, availableWorkers);
-            List<Worker> assignedWorkers = task.Workers.ToList();
-            UpdateAssignedWorkers(task, assignedWorkersContainer, task.Workers);
-        };
+        Game.OnNewWorker += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
+        Game.OnWorkerAssigned += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
+        Game.OnWorkerFreed += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
 
         void UpdateWorkerContainer(string status)
         {
-            bool show = task.CanStart;
+            //bool show = task.CanStart; // override can start
+            bool show = task.Status != "completed"; // override can start
 
-            assignableWorkerContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            assignedWorkersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            assignedWorkersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            assignWorkersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            workersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            workersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
 
@@ -1107,7 +1094,7 @@ public class UIManager : MonoBehaviour
 
         task.OnWorkersChanged += (workers) =>
         {
-            assignedWorkersLabel.text = $"Assigned workers: {string.Join(", ", workers.Select(w => w.Name))}";
+            workersLabel = new Label($"Workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
         };
 
 
@@ -1141,10 +1128,10 @@ public class UIManager : MonoBehaviour
         tasksContent.Add(window);
     }
 
-    private static void UpdateAssignableWorkers(Task task, VisualElement assignableWorkersContainer, List<Worker> availableWorkers)
+    private static void UpdateTaskWorkers(Task task, VisualElement workersContainer, List<Worker> workers)
     {
-        assignableWorkersContainer.Clear();
-        foreach (Worker worker in availableWorkers)
+        workersContainer.Clear();
+        foreach (Worker worker in workers)
         {
             Button assignButton = new Button
             {
@@ -1170,57 +1157,36 @@ public class UIManager : MonoBehaviour
                         height = 50,
                     }
             };
-
+            
             assignButton.Add(portrait);
-            assignButton.AddToClassList("assign-worker");
 
-            assignButton.clicked += () =>
+            if(worker.Task == null)
             {
-                task.AssignWorker(worker);
-            };
-
-            assignableWorkersContainer.Add(assignButton);
-        }
-    }
-    private static void UpdateAssignedWorkers(Task task, VisualElement assignableWorkersContainer, List<Worker> assignedWorkers)
-    {
-        assignableWorkersContainer.Clear();
-        foreach (Worker worker in assignedWorkers)
-        {
-            Button assignButton = new Button
-            {
-                style =
+                assignButton.AddToClassList("assign-worker");
+                assignButton.clicked += () =>
                 {
-                    width = 50,
-                    height = 50,
-                    paddingLeft = 0,
-                    paddingRight = 0,
-                    paddingTop = 0,
-                    paddingBottom = 0,
-                }
-            };
+                    task.AssignWorker(worker);
+                };
 
-            Image portrait = new Image
+                workersContainer.Add(assignButton);
+
+            }
+            else if(worker.Task == task)
             {
-                sprite = worker.Portrait,
-                scaleMode = ScaleMode.ScaleToFit,
-                style = 
+                assignButton.AddToClassList("un-assign-worker");
+                assignButton.clicked += () =>
                 {
-                    flexGrow = 1,
-                    width = 50,
-                    height = 50,
-                }
-            };
+                    task.RemoveWorker(worker);
+                };
 
-            assignButton.Add(portrait);
-            assignButton.AddToClassList("un-assign-worker");
-
-            assignButton.clicked += () =>
+                workersContainer.Add(assignButton);
+            }
+            else
             {
-                task.RemoveWorker(worker);
-            };
+                // dont add it anywhere
+            }
 
-            assignableWorkersContainer.Add(assignButton);
+
         }
     }
 
@@ -1232,13 +1198,76 @@ public class UIManager : MonoBehaviour
 
         var elements = new List<VisualElement>();
 
+        // containers+
+        VisualElement mainContainer = new VisualElement(); 
+        mainContainer.style.flexDirection = FlexDirection.Row;
+
+
+
+        VisualElement leftContainer = new VisualElement();
+        leftContainer.style.flexDirection = FlexDirection.Column;
+
+
+        VisualElement rightContainer = new VisualElement();
+        rightContainer.style.flexDirection = FlexDirection.Column;
+
+        rightContainer.style.paddingLeft = 16;
+
+        rightContainer.style.display = DisplayStyle.None; // default to hidden
+
+
+        var btnInfo = new Button(() =>
+        {
+            rightContainer.style.display = rightContainer.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None;
+        });
+        btnInfo.text = "i";
+        
+        btnInfo.style.position = Position.Absolute;
+        btnInfo.style.bottom = 0;
+        btnInfo.style.right = 0;
+        btnInfo.AddToClassList("button-small");
+        
+
+
+        Label lblSpecialty = new Label(new string(worker.Specialty.Name.Take(2).ToArray()).ToUpper());
+        lblSpecialty.style.top = 0;
+        lblSpecialty.style.left = 0;
+        lblSpecialty.style.position = Position.Absolute;
+        lblSpecialty.style.color = Color.yellow;
+
+        lblSpecialty.AddToClassList("info-label");
+
+        Label lblSkill = new Label(new string(worker.Skill.ToString()));
+        lblSkill.style.top = 0;
+        lblSkill.style.right = 0;
+        lblSkill.style.position = Position.Absolute;
+        lblSkill.style.color = Color.cyan;
+        lblSkill.style.backgroundColor = new Color(0.2f,0.2f,0.2f);
+
+        lblSkill.AddToClassList("info-label");
+
+
+        elements.Add(mainContainer);
+
+        mainContainer.Add(leftContainer);
+        
+        mainContainer.Add(rightContainer);
+
+        // containers
+
+
         Image imgPortrait = new()
         {
             sprite = worker.Portrait,
         };
         imgPortrait.AddToClassList("portrait");
 
-        elements.Add (imgPortrait);
+        imgPortrait.Add(btnInfo);
+        imgPortrait.Add(lblSpecialty);
+        imgPortrait.Add(lblSkill);
+
+        leftContainer.Add(imgPortrait);
+
 
         Label idLabel = new Label($"WorkerID: {worker.Id}");
         Label levelLabel = new Label($"Level: {worker.Level}");
@@ -1249,14 +1278,15 @@ public class UIManager : MonoBehaviour
         Label statusLabel = new Label($"Status: {worker.Status}");
         Label taskLabel = new Label($"Task: {worker.Task?.Name}");
 
-        //elements.Add(idLabel);
-        elements.Add(levelLabel);
-        elements.Add(xpLabel);
-        elements.Add(nextXpLabel);
-        elements.Add(skillLabel);
-        elements.Add(specialtyLabel);
-        elements.Add(statusLabel);
-        elements.Add(taskLabel);
+
+
+        rightContainer.Add(levelLabel);
+        rightContainer.Add(xpLabel);
+        rightContainer.Add(nextXpLabel);
+        rightContainer.Add(skillLabel);
+        rightContainer.Add(specialtyLabel);
+        rightContainer.Add(statusLabel);
+        rightContainer.Add(taskLabel);
 
         // Bind update events
         worker.OnLevelChanged += val => levelLabel.text = $"Level: {val}";
@@ -1281,7 +1311,6 @@ public class UIManager : MonoBehaviour
         var hBarFill = hBar.Q(className: "unity-progress-bar__progress");
         hBarFill.style.backgroundColor = ProgressBarColors.Red;
 
-        elements.Add(hBar);
 
         worker.OnHealthChanged += (value) => hBar.value = value;
 
@@ -1295,9 +1324,8 @@ public class UIManager : MonoBehaviour
         sBar.Q<Label>(className: "unity-progress-bar__title").text = "Stress";
 
         var sBarFill = sBar.Q(className: "unity-progress-bar__progress");
-        sBarFill.style.backgroundColor = ProgressBarColors.Yellow;
+        sBarFill.style.backgroundColor = ProgressBarColors.Orange;
 
-        elements.Add(sBar);
         worker.OnStressChanged += (value) => sBar.value = value;
         
         ProgressBar eBar = new ProgressBar()
@@ -1311,12 +1339,33 @@ public class UIManager : MonoBehaviour
 
         var eBarFill = eBar.Q(className: "unity-progress-bar__progress");
         eBarFill.style.backgroundColor = ProgressBarColors.Cyan;
+        
+                
 
         worker.OnEfficiencyChanged += (value) => eBar.value = value;
 
-        elements.Add(eBar);
+        ProgressBar xpBar = new ProgressBar()
+        {
+            value = worker.Xp,
+            lowValue = 0,
+            highValue = worker.NextXp,
+            tooltip = "Experience"
+        };
+        xpBar.Q<Label>(className: "unity-progress-bar__title").text = "Experience";
 
-        var window = new WindowUI(worker.Name, elements, new Vector2(0, 0), CreateFAIcon("user", 32, 32),false,true);
+        var xpBarFill = xpBar.Q(className: "unity-progress-bar__progress");
+        xpBarFill.style.backgroundColor = ProgressBarColors.Yellow;
+
+        worker.OnXpChanged += (value) => xpBar.value = value;
+        worker.OnNextXpChanged += (value) => xpBar.highValue = value;
+
+
+        leftContainer.Add(sBar);
+        leftContainer.Add(hBar);
+        leftContainer.Add(eBar);
+        leftContainer.Add(xpBar);
+
+        var window = new WindowUI(worker.Name, elements, new Vector2(0, 0),null /*CreateFAIcon("user", 32, 32)*/,false,true,false);
 
         window.OnHeaderChanged += (value) =>  worker.Name = value;
 
@@ -1362,7 +1411,7 @@ public class UIManager : MonoBehaviour
         elements.Add(hireCostLabel);
 
 
-        bool canHire = Game.Money >= worker.HiringCost;
+        bool canHire = Game.HasMoney(worker.HiringCost);
         hireCostLabel.style.color = canHire ? new StyleColor(Color.green) : new StyleColor(Color.red);
 
         Button btnSubmit = new()
@@ -1371,13 +1420,22 @@ public class UIManager : MonoBehaviour
         };
         btnSubmit.clicked += () =>
         {
+            int currentCost = worker.HiringCost; // Or a method like worker.GetCurrentHiringCost()
+            Game.SpendMoney(currentCost);
             Game.AddWorker(worker);
             Game.RemoveWorkerFromHirePool(worker);
+            
         };
         btnSubmit.SetEnabled(canHire);
 
         elements.Add(btnSubmit);
 
+        Game.OnMoneyChanged += (money) =>
+        {
+            bool _canHire = Game.HasMoney(worker.HiringCost);
+            hireCostLabel.style.color = _canHire ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            btnSubmit.SetEnabled(_canHire);
+        };
 
 
         var window = new WindowUI(worker.Name, elements, Vector2.zero, CreateFAIcon("person", 32, 32), false);

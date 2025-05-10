@@ -7,8 +7,8 @@ namespace Assets.Scripts.Utils
     public class GameData
     {
         public float SimulationTime;
-        public float Money;
-        public float Reputation;
+        public int Money;
+        public int Reputation;
 
         public List<WorkerData> Workers;
         public List<WorkerData> AvailableWorkers;
@@ -45,8 +45,8 @@ namespace Assets.Scripts.Utils
         public string Description;
         public float Duration;
         public float StartDuration;
-        public float Difficulty;
-        public float Pay;
+        public int Difficulty;
+        public int Pay;
         public List<TaskData> Tasks;
         public ProjectData() { } 
     }
@@ -56,7 +56,7 @@ namespace Assets.Scripts.Utils
     {
         public string Name;
         public float Progress;
-        public float Difficulty;
+        public int Difficulty;
         public int Priority;
         public string Description;
         public string Specialty;
