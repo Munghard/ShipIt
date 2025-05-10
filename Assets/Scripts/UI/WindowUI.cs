@@ -18,6 +18,7 @@ public class WindowUI : VisualElement
             Debug.LogError("UXML file not found!");
         }
 
+
         this.style.left = position.x;
         this.style.top = position.y;
 

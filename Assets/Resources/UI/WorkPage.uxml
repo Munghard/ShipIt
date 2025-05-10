@@ -3,9 +3,9 @@
     <engine:Template name="task" src="project://database/Assets/Resources/UI/TestingTemplates/task.uxml?fileID=9197481963319205126&amp;guid=bdf820b29400de54bbe9a7d489ecee6a&amp;type=3#task" />
     <engine:Template name="worker" src="project://database/Assets/Resources/UI/TestingTemplates/worker.uxml?fileID=9197481963319205126&amp;guid=c3bb82765b992fc4e8d3d0009525c782&amp;type=3#worker" />
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
-    <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: column;">
+    <engine:VisualElement name="main" class="main" style="flex-grow: 1; flex-direction: column;">
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1; flex-direction: column;">
-            <engine:Label text="Work" parse-escape-sequences="false" name="pageHeader" style="font-size: 40px; -unity-font-style: bold; margin: 0; border-width: 20px;" />
+            <engine:Label text="Work" parse-escape-sequences="false" name="pageHeader" class="pageHeader" style="font-size: 40px; -unity-font-style: bold; margin: 0; border-width: 20px;" />
             <engine:VisualElement style="flex-direction: row; flex-grow: 0; flex-shrink: 0; height: 750px;">
                 <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
                     <engine:VisualElement name="projectsContent" class="content" style="flex-direction: column; flex-grow: 1;">

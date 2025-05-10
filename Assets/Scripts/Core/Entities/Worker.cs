@@ -197,7 +197,11 @@ public class Worker
 
         if (Occupied && Task.Status != "completed")
         {
-            float stressIncrease = (Task.Difficulty / Skill) * deltaTime * 2f;
+            float effectiveSkill = Mathf.Max(Skill / 2f, 1f); // Prevent division by <1
+            float specialtyStressModifier = Task.Specialty.Name == Specialty.Name ? 1f : Task.Difficulty * 2f;
+
+            float stressIncrease = (Task.Difficulty / effectiveSkill) * deltaTime * 2f * specialtyStressModifier;
+
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
         }
@@ -214,7 +218,7 @@ public class Worker
 
         if (Stress <= 0 && Health < MaxHealth)
         {
-            IncreaseHealth(deltaTime / 10f);
+            //IncreaseHealth(deltaTime / 10f); // regenerate health
         }
     }
 

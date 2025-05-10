@@ -523,37 +523,60 @@ public class UIManager : MonoBehaviour
 
         CreateTimeContainer();
 
-        CreateThemeButton();
+        //CreateThemeButton();
 
     }
     public void BindGameToUI(Game game)
     {
-        // Optional: unhook previous if needed
-        game.OnTimeScaleChanged += time => {
+        // Unhook previous bindings (if any)
+        game.OnTimeScaleChanged -= OnTimeScaleChangedHandler;
+        game.OnMoneyChanged -= OnMoneyChangedHandler;
+        game.OnReputationChanged -= OnReputationChangedHandler;
+
+        // Hook new bindings
+        game.OnTimeScaleChanged += OnTimeScaleChangedHandler;
+        game.OnMoneyChanged += OnMoneyChangedHandler;
+        game.OnReputationChanged += OnReputationChangedHandler;
+
+        // Avoid double-adding UI button events
+        btnPassTime.clicked -= OnPassTimeClicked;
+        btnPassTime.clicked += OnPassTimeClicked;
+
+        btnPause.clicked -= game.TogglePaused;
+        btnPause.clicked += game.TogglePaused;
+
+        btnUp.clicked -= game.DoubleTimeScale;
+        btnUp.clicked += game.DoubleTimeScale;
+
+        btnDown.clicked -= game.HalveTimeScale;
+        btnDown.clicked += game.HalveTimeScale;
+
+        // Handlers
+        void OnTimeScaleChangedHandler(float time)
+        {
             if (timeScaleLabel != null)
                 timeScaleLabel.text = $"Time scale: {time}x";
-        };
-        game.OnMoneyChanged += money => {
+        }
+
+        void OnMoneyChangedHandler(int money)
+        {
             if (moneyLabel != null)
                 moneyLabel.text = $"{money}$";
-        };
-        game.OnReputationChanged += rep => {
+        }
+
+        void OnReputationChangedHandler(int rep)
+        {
             if (repLabel != null)
                 repLabel.text = $"{rep} Rep";
-        };
+        }
 
-        btnPassTime.clicked += () =>
+        void OnPassTimeClicked()
         {
             ConfirmationWindow.Create(Message: $"passing 4 hours, are you sure?", Parent: Root, OkCallback: () =>
             {
-                Game.PassTime(60 * 4); // pass 4 hours?
+                Game.PassTime(60 * 4);
             });
-        };
-        
-        btnPause.clicked += game.TogglePaused;
-        btnUp.clicked += game.DoubleTimeScale; 
-        btnDown.clicked += game.HalveTimeScale;
-
+        }
     }
 
     private void CreateThemeButton()
@@ -1040,7 +1063,10 @@ public class UIManager : MonoBehaviour
         Label descLabel = new Label($"Description: {TextWrap.WrapText(task.Description,30)}");
         Label diffLabel = new Label($"Difficulty: {task.Difficulty}");
         Label priorityLabel = new Label($"Priority: {task.Priority}");
+
         Label specLabel = new Label($"Speciality: {task.Specialty.Name}");
+        specLabel.style.color = Color.yellow;
+
         Label statusLabel = new Label($"Status: {task.Status}");
         Label workersLabel = new Label($"Workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
 
@@ -1162,7 +1188,14 @@ public class UIManager : MonoBehaviour
 
             if(worker.Task == null)
             {
-                assignButton.AddToClassList("assign-worker");
+                if (worker.Specialty.Name == task.Specialty.Name ||worker.Specialty.Name == "General")
+                {
+                    assignButton.AddToClassList("assign-worker");
+                }
+                else
+                {
+                    assignButton.AddToClassList("assign-worker-untrained");
+                }
                 assignButton.clicked += () =>
                 {
                     task.AssignWorker(worker);
@@ -1269,6 +1302,19 @@ public class UIManager : MonoBehaviour
         leftContainer.Add(imgPortrait);
 
 
+        Button btnFire = new Button()
+        {
+            text = "Fire",
+        };
+        btnFire.clicked += () =>
+        {
+            ConfirmationWindow.Create(Message: $"Are you sure you want to fire {worker.Name}?", Parent: Root, OkCallback: () =>
+            {
+                Game.RemoveWorker(worker);
+                Game.textPop.New("Fired: " + worker.Name, Vector2.zero, Color.red);
+            });
+        };
+
         Label idLabel = new Label($"WorkerID: {worker.Id}");
         Label levelLabel = new Label($"Level: {worker.Level}");
         Label xpLabel = new Label($"Current xp: {worker.Xp}");
@@ -1287,6 +1333,8 @@ public class UIManager : MonoBehaviour
         rightContainer.Add(specialtyLabel);
         rightContainer.Add(statusLabel);
         rightContainer.Add(taskLabel);
+
+        rightContainer.Add(btnFire);
 
         // Bind update events
         worker.OnLevelChanged += val => levelLabel.text = $"Level: {val}";

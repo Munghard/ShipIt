@@ -40,9 +40,9 @@ public class Game
     public System.Action<Worker> OnWorkerFreed;
     public System.Action<List<Worker>> OnWorkersChanged;
     
-    public System.Action<float> OnMoneyChanged;
+    public System.Action<int> OnMoneyChanged;
 
-    public System.Action<float> OnReputationChanged;
+    public System.Action<int> OnReputationChanged;
 
     public System.Action<float> OnTimeScaleChanged;
 
@@ -314,5 +314,11 @@ public class Game
     {
         acquiredBuyables.Add(buyable);
         OnAcquiredBuyablesChanged?.Invoke(acquiredBuyables);
+    }
+
+    internal void RemoveWorker(Worker worker)
+    {
+        Workers.Remove(worker);
+        OnWorkersChanged?.Invoke(Workers);
     }
 }

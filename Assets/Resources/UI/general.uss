@@ -4,6 +4,7 @@
     --secondary: rgb(136, 192, 208);
     --background: rgb(30, 31, 38);
     --window: rgb(47, 50, 62);
+    --window-bg: rgb(37, 40, 52);
     --content: rgba(47, 50, 62, 0.2);
     --header: rgb(59, 66, 82);
     --header-active: rgb(94, 129, 172);
@@ -11,6 +12,12 @@
     --btntext: rgb(216, 222, 233);
     --border: rgb(76, 86, 106);
     --navbar: rgb(36, 38, 48);
+
+    --yellow: rgb(255, 221, 51);
+    --green: rgb(51, 255, 51);
+    --red: rgb(255, 51, 51);
+    --blue: rgb(51, 51, 255);
+    --purple: rgb(255, 51, 255);
 }
 .light-theme {
     --primary: rgb(79, 163, 217);
@@ -81,7 +88,7 @@ Button:hover {
     border-color: var(--primary);
 }
 
-#pageHeader {
+pageHeader {
     color: var(--header-active);
 }
 
@@ -211,13 +218,12 @@ Textfield
 
 
 #window {
-    background-color: var(--window);
+    background-color: var(--window-bg);
     opacity: 0.95;
     border-width: 4px;
     border-color: var(--border);
     border-radius: 8px;
 }
-
 #window:hover {
     border-color: white;
     transition: all 0.3s ease;
@@ -285,6 +291,12 @@ Textfield
 }
 .assign-worker:hover {
     border-color: chartreuse;
+}
+.assign-worker-untrained {
+    border-color: var(--yellow);
+}
+.assign-worker-untrained:hover {
+    border-color: yellow;
 }
 
 .un-assign-worker {

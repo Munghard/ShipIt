@@ -1,8 +1,8 @@
 <engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
-    <engine:VisualElement name="main" style="flex-grow: 1; flex-direction: row;">
+    <engine:VisualElement name="main" class="main" style="flex-grow: 1; flex-direction: row;">
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;">
-            <engine:Label text="Shop" parse-escape-sequences="false" name="pageHeader" style="font-size: 40px; -unity-font-style: bold; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 20px; margin-right: 20px; margin-bottom: 20px; margin-left: 20px;" />
+            <engine:Label text="Shop" parse-escape-sequences="false" name="pageHeader" class="pageHeader" style="font-size: 40px; -unity-font-style: bold; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 20px; margin-right: 20px; margin-bottom: 20px; margin-left: 20px;" />
             <engine:ScrollView>
                 <engine:VisualElement name="shopContent" class="content" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
             </engine:ScrollView>
