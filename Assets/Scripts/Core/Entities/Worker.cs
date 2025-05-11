@@ -181,7 +181,7 @@ public class Worker
 
     public void IncreaseHealth(float amount)
     {
-        Health = Mathf.Min(MaxHealth, Health + (amount / 100f));
+        Health = Mathf.Min(MaxHealth, Health + amount);
         if (amount > 5)
         {
             Game.textPop.New($"{Name} Health + {amount}", GetWindowCenter(), Color.green);

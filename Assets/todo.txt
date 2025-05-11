@@ -14,3 +14,11 @@ staffing deosnt update on moneychanged
 change task ui to have a workers container and worker buttons that change border color on assigned and un assigned
 
 maybe you get a bonus if you complete the correct priority task like difficulty * 100$
+
+
+get too much money from completing projects needs  to be way less like 0.1x
+
+stat for max team size, buyable: bigger office> one tiem purchase increases max team size.
+ needs some kind of money sink like paying salary to workers and maybe rent
+
+ split shop into "upgrades" and "consumables boosts"

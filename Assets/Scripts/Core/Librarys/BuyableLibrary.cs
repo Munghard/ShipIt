@@ -171,7 +171,7 @@ namespace Assets.Scripts.Data
                 new Buyable(
                     id: 9,
                     name: "Healthcare",
-                    description: "Increases worker health by providing healthcare.",
+                    description: "Increases workers health by providing healthcare. Increases health by 50 for each worker",
                     cost: 500,
                     reputationNeeded: 0,
                     singleBuy: false,
