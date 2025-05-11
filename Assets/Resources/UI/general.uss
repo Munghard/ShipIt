@@ -50,6 +50,11 @@ Button {
     flex-basis: auto;
     width: auto;
 }
+Button:active {
+    border-color: white;
+    scale: 0.90;
+
+}
 .button-small {
     background-color: var(--header);
     height: 25px;

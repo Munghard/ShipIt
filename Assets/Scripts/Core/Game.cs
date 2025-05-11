@@ -306,7 +306,7 @@ public class Game
                 task.UpdateTask(SimulationTime);
         }
 
-        foreach (var worker in Workers)
+        foreach (var worker in Workers.ToList())
             worker.UpdateWorker(SimulationTime);
     }
 

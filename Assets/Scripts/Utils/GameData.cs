@@ -30,6 +30,7 @@ namespace Assets.Scripts.Utils
         public int Level;
         public int Skill;
         public float Health;
+        public float Happiness;
         public float Stress;
         public float Efficiency;
         public float Xp;

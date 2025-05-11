@@ -24,7 +24,7 @@ namespace Assets.Scripts.Data
                     id: 1,
                     name: "Coffee Break",
                     description: "Boosts worker morale by reducing stress for all workers. Reduces stress by 10 for each worker.",
-                    cost: 100,
+                    cost: 250,
                     reputationNeeded: 0,
                     singleBuy: false,
                     iconName: stressRelief,
@@ -42,7 +42,7 @@ namespace Assets.Scripts.Data
                     id: 2,
                     name: "Fun Activities",
                     description: "Reduces stress for all workers by organizing fun activities. Reduces stress by 20 for each worker.",
-                    cost: 300,
+                    cost: 400,
                     reputationNeeded: 300,
                     singleBuy: false,
                     iconName: stressRelief,
@@ -59,8 +59,8 @@ namespace Assets.Scripts.Data
                 new Buyable(
                     id: 3,
                     name: "Pizza Time",
-                    description: "Boosts productivity and worker health for a short period by offering pizza. Increases productivity by 10 and health by 5 for each worker.",
-                    cost: 250,
+                    description: "Boosts productivity and worker health for a short period by offering pizza. Increases efficiency by 10 and health by 20 for each worker.",
+                    cost: 650,
                     reputationNeeded: 0,
                     singleBuy: false,
                     iconName: health,
@@ -70,17 +70,17 @@ namespace Assets.Scripts.Data
                         game.SpendMoney(buyable.Cost);
                         foreach (var worker in game.Workers)
                         {
-                            worker.IncreaseEfficiency(10);
-                            worker.IncreaseHealth(5);
+                            worker.DecreaseStress(10);
+                            worker.IncreaseHealth(20);
                         }
                     }
                 ),
                 new Buyable(
                     id: 4,
                     name: "Team Lunch",
-                    description: "Improves teamwork and boosts task speed by organizing a team lunch. Increases efficiency by 10 and health by 10 for each worker.",
-                    cost: 200,
-                    reputationNeeded: 50,
+                    description: "Improves teamwork and boosts task speed by organizing a team lunch. Increases efficiency by 20 and health by 30 for each worker.",
+                    cost: 1000,
+                    reputationNeeded: 500,
                     singleBuy: false,
                     iconName: health,
                     onPurchased: (Buyable buyable, Game game) =>
@@ -89,16 +89,16 @@ namespace Assets.Scripts.Data
                         game.SpendMoney(buyable.Cost);
                         foreach (var worker in game.Workers)
                         {
-                            worker.IncreaseEfficiency(10);
-                            worker.IncreaseHealth(10);
+                            worker.DecreaseStress(20);
+                            worker.IncreaseHealth(30);
                         }
                     }
                 ),
                 new Buyable(
                     id: 5,
                     name: "Office Plants",
-                    description: "Adds a calming atmosphere, reducing worker stress and improving their skills over time. Reduces stress by 5 and increases skill by 1 for each worker.",
-                    cost: 150,
+                    description: "Adds a calming atmosphere, reducing worker stress and improving their skills over time. Reduces stress by 100 once and increases skill by 1 for each worker.",
+                    cost: 400,
                     reputationNeeded: 100,
                     singleBuy: true,
                     iconName: skill,
@@ -109,15 +109,15 @@ namespace Assets.Scripts.Data
                         foreach (var worker in game.Workers)
                         {
                             worker.IncreaseSkill(1);
-                            worker.DecreaseStress(5);
+                            worker.DecreaseStress(100);
                         }
                     }
                 ),
                 new Buyable(
                     id: 6,
                     name: "New Coffee Machine",
-                    description: "Improves worker focus and boosts their skills by providing a new coffee machine. Increases skill by 1 for each worker.",
-                    cost: 400,
+                    description: "Improves worker focus and boosts their skills by providing a new coffee machine. Increases health by 50 once Increases skill by 1 for each worker.",
+                    cost: 1500,
                     reputationNeeded: 1000,
                     singleBuy: true,
                     iconName: skill,
@@ -128,6 +128,7 @@ namespace Assets.Scripts.Data
                         foreach (var worker in game.Workers)
                         {
                             worker.IncreaseSkill(1);
+                            worker.IncreaseHealth(50);
                         }
                     }
                 ),
@@ -135,7 +136,7 @@ namespace Assets.Scripts.Data
                     id: 7,
                     name: "Casual Friday",
                     description: "Increases worker satisfaction and reduces stress by allowing casual attire on Fridays. Reduces stress by 20 for each worker.",
-                    cost: 300,
+                    cost: 500,
                     reputationNeeded: 500,
                     singleBuy: false,
                     iconName: stressRelief,
@@ -145,7 +146,7 @@ namespace Assets.Scripts.Data
                         game.SpendMoney(buyable.Cost);
                         foreach (var worker in game.Workers)
                         {
-                            worker.DecreaseStress(20);
+                            worker.DecreaseStress(70);
                         }
                     }
                 ),
@@ -153,7 +154,7 @@ namespace Assets.Scripts.Data
                     id: 8,
                     name: "Ergonomic Chairs",
                     description: "Reduces worker fatigue and increases productivity by providing ergonomic chairs. Increases skill by 1 for each worker.",
-                    cost: 500,
+                    cost: 2000,
                     reputationNeeded: 2000,
                     singleBuy: true,
                     iconName: skill,
@@ -164,6 +165,24 @@ namespace Assets.Scripts.Data
                         foreach (var worker in game.Workers)
                         {
                             worker.IncreaseSkill(1); // Assuming ReduceFatigue method exists
+                        }
+                    }
+                ),
+                new Buyable(
+                    id: 9,
+                    name: "Healthcare",
+                    description: "Increases worker health by providing healthcare.",
+                    cost: 500,
+                    reputationNeeded: 0,
+                    singleBuy: false,
+                    iconName: health,
+                    onPurchased: (Buyable buyable, Game game) =>
+                    {
+                        Debug.Log("Healthcare purchased!");
+                        game.SpendMoney(buyable.Cost);
+                        foreach (var worker in game.Workers)
+                        {
+                            worker.IncreaseHealth(50); // Assuming ReduceFatigue method exists
                         }
                     }
                 )

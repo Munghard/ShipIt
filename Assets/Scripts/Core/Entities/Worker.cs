@@ -8,6 +8,8 @@ public class Worker
     public float Health;
     public float MaxHealth = 100f;
     public float MaxStress = 100f;
+    public float Happiness;
+    public float MaxHappiness = 100f;
     public int Level;
     public float Xp;
     public float NextXp;
@@ -30,6 +32,7 @@ public class Worker
 
     public System.Action<float> OnHealthChanged;
     public System.Action<float> OnStressChanged;
+    public System.Action<float> OnHappinessChanged;
     public System.Action<float> OnEfficiencyChanged;
     public System.Action<float> OnXpChanged;
     public System.Action<float> OnNextXpChanged;
@@ -39,7 +42,7 @@ public class Worker
     public System.Action<int> OnSkillChanged;
 
     public float StressDecreasePerSecond => Skill * 0.5f;
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game,float? health = null,float? stress = null,int? level = null, float? xp = null, long? id = null)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game,float? health = null,float? stress = null,int? level = null, float? xp = null, long? id = null,float? happiness = null)
     {
         Id = id ?? GenerateId();
         Name = name;
@@ -47,6 +50,7 @@ public class Worker
         Specialty = specialty;
         Skill = (int)skill;
         Efficiency = efficiency;
+        Happiness = happiness ?? 100f;
         Project = project;
         Game = game;
         Health = health ?? MaxHealth; // if health null set to max
@@ -143,6 +147,25 @@ public class Worker
         }
         OnStressChanged?.Invoke(Stress);
     }
+    public void IncreaseHappiness(float amount)
+    {
+        Happiness = Mathf.Min(MaxHappiness, Happiness + amount);
+        if (amount > 5)
+        {
+            Game.textPop.New($"{Name} Happiness + {amount}", GetWindowCenter(), Color.red);
+        }
+        OnHappinessChanged?.Invoke(Happiness);
+    }
+
+    public void DecreaseHappiness(float amount)
+    {
+        Happiness = Mathf.Max(0, Happiness - amount);
+        if (amount > 5)
+        {
+            Game.textPop.New($"{Name} Happiness - {amount}", GetWindowCenter(), Color.green);
+        }
+        OnHappinessChanged?.Invoke(Happiness);
+    }
 
     public void IncreaseEfficiency(float amount)
     {
@@ -212,9 +235,23 @@ public class Worker
 
         if (Stress >= MaxStress)
         {
+            DecreaseHappiness(deltaTime / 2);
             DecreaseHealth(deltaTime);
             if (Health <= 0) Death();
         }
+        else
+        {
+            IncreaseHappiness(deltaTime / 4);
+        }
+
+
+        if (Happiness <= 0)
+        {
+            RemoveFromTask();
+            Game.RemoveWorker(this);
+            Game.textPop.New($"{Name} left the company!", GetWindowCenter(), Color.red);
+        }
+        
 
         if (Stress <= 0 && Health < MaxHealth)
         {

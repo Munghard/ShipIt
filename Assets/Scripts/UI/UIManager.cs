@@ -202,6 +202,7 @@ public class UIManager : MonoBehaviour
                     specialty: Specialty.Get(loadedWorker.Specialty),
                     skill: loadedWorker.Skill,
                     efficiency: loadedWorker.Efficiency,
+                    happiness: loadedWorker.Happiness,
                     project: null,
                     game: Game,
                     health: loadedWorker.Health,
@@ -357,6 +358,7 @@ public class UIManager : MonoBehaviour
                 Level = worker.Level,
                 Skill = worker.Skill,
                 Health = worker.Health,
+                Happiness = worker.Happiness,
                 Stress = worker.Stress,
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
@@ -373,6 +375,7 @@ public class UIManager : MonoBehaviour
                 Level = worker.Level,
                 Skill = worker.Skill,
                 Health = worker.Health,
+                Happiness = worker.Happiness,
                 Stress = worker.Stress,
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
@@ -1387,8 +1390,6 @@ public class UIManager : MonoBehaviour
 
         var eBarFill = eBar.Q(className: "unity-progress-bar__progress");
         eBarFill.style.backgroundColor = ProgressBarColors.Cyan;
-        
-                
 
         worker.OnEfficiencyChanged += (value) => eBar.value = value;
 
@@ -1406,12 +1407,27 @@ public class UIManager : MonoBehaviour
 
         worker.OnXpChanged += (value) => xpBar.value = value;
         worker.OnNextXpChanged += (value) => xpBar.highValue = value;
+        
+        ProgressBar haBar = new ProgressBar()
+        {
+            value = worker.Happiness,
+            lowValue = 0,
+            highValue = worker.MaxHappiness,
+            tooltip = "Happiness"
+        };
+        haBar.Q<Label>(className: "unity-progress-bar__title").text = "Happiness";
+
+        var haBarFill = haBar.Q(className: "unity-progress-bar__progress");
+        haBarFill.style.backgroundColor = ProgressBarColors.Green;
+
+        worker.OnHappinessChanged += (value) => haBar.value = value;
 
 
         leftContainer.Add(sBar);
         leftContainer.Add(hBar);
         leftContainer.Add(eBar);
         leftContainer.Add(xpBar);
+        leftContainer.Add(haBar);
 
         var window = new WindowUI(worker.Name, elements, new Vector2(0, 0),null /*CreateFAIcon("user", 32, 32)*/,false,true,false);
 
