@@ -157,7 +157,7 @@ public class Game
         {
             int difficulty = Random.Range(1, Project.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
             float duration = Random.Range(10, 20) * 60 * difficulty; // multiply time with difficulty
-            int pay = (Mathf.FloorToInt(difficulty * 500)) + Random.Range(50, 200);
+            int pay = (Mathf.FloorToInt(difficulty * 100)) + Random.Range(50, 200);
             var project = new Project(this, "Project" + i, "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
         }

@@ -44,7 +44,7 @@ public class Project
         ReputationNeeded = (int)ReputationNeededFromLevelFormula(difficulty);
         ReputationGain = (int)(difficulty) * 100;
         StartDuration = startDuration ?? duration;
-        Pay = pay ?? Mathf.FloorToInt(difficulty * 1000);
+        Pay = pay ?? Mathf.FloorToInt(difficulty * 100);
         Status = "pending";
         Icon = game.iconManager.GetIcon(32).SheetTexture;
         Tasks = new List<Task>(); // Initialize Tasks first
