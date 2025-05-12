@@ -1,8 +1,10 @@
 ﻿
 using System.Collections.Generic;
 using System.Reflection;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.UIElements;
+#endif
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,10 +20,12 @@ namespace Assets.Scripts.Core.Config
             UIManager = uIManager;
             ConfigContent = UIManager.Root.Q<VisualElement>("configContent");
             GameConfig = uIManager.GameConfig;
-            
-            GeneratePage();
-        }
 
+#if UNITY_EDITOR
+            GeneratePage();
+#endif
+        }
+#if UNITY_EDITOR
         private void GeneratePage()
         {
             var so = new SerializedObject(GameConfig);
@@ -73,7 +77,6 @@ namespace Assets.Scripts.Core.Config
                 }
             }
         }
-
-
+#endif
     }
 }
