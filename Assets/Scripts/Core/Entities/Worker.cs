@@ -41,25 +41,24 @@ public class Worker
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
 
-    public float StressDecreasePerSecond => Skill * 0.5f;
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, float efficiency, Project project, Game game,float? health = null,float? stress = null,int? level = null, float? xp = null, long? id = null,float? happiness = null)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null)
     {
         Id = id ?? GenerateId();
         Name = name;
         Portrait = portrait;
         Specialty = specialty;
         Skill = (int)skill;
-        Efficiency = efficiency;
+        Efficiency = 100f - stress ?? 0;
         Happiness = happiness ?? 100f;
         Project = project;
         Game = game;
         Health = health ?? MaxHealth; // if health null set to max
         Stress = stress ?? 0;
-        Level = level ?? 1; // if level null set to 1
+        Level = level; // if level null set to 1
         Xp = xp ?? 0;
-        NextXp = Mathf.Floor(100f * Mathf.Pow(Level, 1.5f));
+        NextXp = Game.GameConfig.EvalWorkerXpCurve(Level);
         Status = "idle";
-        HiringCost = Mathf.FloorToInt((Level + Random.value) * 500f);
+        HiringCost = Game.GameConfig.GetHiringCost(Level);
     }
 
     private long GenerateId()
@@ -101,8 +100,8 @@ public class Worker
     public void TaskCompleted(Task task)
     {
         TasksCompleted++;
-        DecreaseStress(task.Difficulty * 5);
-        GainXp(task.Difficulty * task.TimeToComplete * 10);
+        DecreaseStress(Game.GameConfig.GetStressDecreaseOnTaskComplete(task.Difficulty));
+        GainXp(Game.GameConfig.GetXpGainFromTask(task.Difficulty,task.TimeToComplete));
         //RemoveFromTask(); // already called in task
     }
 
@@ -122,7 +121,7 @@ public class Worker
     {
         Skill += 1;
         Level += 1;
-        NextXp = Mathf.Floor(100f * Mathf.Pow(Level, 1.5f));
+        NextXp = Game.GameConfig.EvalWorkerXpCurve(Level);
         Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
         OnLevelChanged?.Invoke(Level);
         OnNextXpChanged?.Invoke(NextXp);
@@ -223,25 +222,25 @@ public class Worker
             float effectiveSkill = Mathf.Max(Skill / 2f, 1f); // Prevent division by <1
             float specialtyStressModifier = Task.Specialty.Name == Specialty.Name ? 1f : Task.Difficulty * 2f;
 
-            float stressIncrease = (Task.Difficulty / effectiveSkill) * deltaTime * 2f * specialtyStressModifier;
+            float stressIncrease = (Task.Difficulty / effectiveSkill) * deltaTime * Game.GameConfig.StressIncreaseMultiplier * specialtyStressModifier;
 
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
         }
         else
         {
-            DecreaseStress(StressDecreasePerSecond * deltaTime);
+            DecreaseStress(Game.GameConfig.GetStressDecreasePerSecond(Skill) * deltaTime);
         }
 
         if (Stress >= MaxStress)
         {
-            DecreaseHappiness(deltaTime / 2);
-            DecreaseHealth(deltaTime);
+            DecreaseHappiness(deltaTime * Game.GameConfig.HappinessLossMultiplier);
+            DecreaseHealth(deltaTime * Game.GameConfig.HealthLossMultiplier);
             if (Health <= 0) Death();
         }
         else
         {
-            IncreaseHappiness(deltaTime / 4);
+            IncreaseHappiness(deltaTime * Game.GameConfig.HappinessGainMultiplier);
         }
 
 
@@ -255,7 +254,7 @@ public class Worker
 
         if (Stress <= 0 && Health < MaxHealth)
         {
-            //IncreaseHealth(deltaTime / 10f); // regenerate health
+            IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier); // regenerate health
         }
     }
 

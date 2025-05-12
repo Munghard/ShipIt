@@ -3,6 +3,7 @@
     <engine:Template name="StaffingPage" src="project://database/Assets/Resources/UI/StaffingPage.uxml?fileID=9197481963319205126&amp;guid=8cccaf1d7e9042741b0831d31d47d060&amp;type=3#StaffingPage" />
     <engine:Template name="ProjectsPage" src="project://database/Assets/Resources/UI/ProjectsPage.uxml?fileID=9197481963319205126&amp;guid=d7960050d41433c48b98fb539ea0535b&amp;type=3#ProjectsPage" />
     <engine:Template name="ShopPage" src="project://database/Assets/Resources/UI/ShopPage.uxml?fileID=9197481963319205126&amp;guid=a726bd06eb657174a862957ca02eb8a6&amp;type=3#ShopPage" />
+    <engine:Template name="ConfigPage" src="project://database/Assets/Resources/UI/ConfigPage.uxml?fileID=9197481963319205126&amp;guid=2954d91ddebf9a640b2e478627cb1fb4&amp;type=3#ConfigPage" />
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
     <engine:VisualElement name="main" class="main" style="flex-grow: 1; flex-direction: row;">
         <engine:VisualElement name="navbar" class="navbar" style="flex-grow: 0; align-items: stretch; right: auto; position: relative; top: auto; left: auto; overflow: visible; opacity: 1; width: 20%; min-width: 200px; flex-direction: column; justify-content: flex-start; align-self: stretch;">
@@ -25,6 +26,9 @@
             </engine:Tab>
             <engine:Tab label="Shop">
                 <engine:Instance template="ShopPage" class="page" />
+            </engine:Tab>
+            <engine:Tab label="Config&#10;">
+                <engine:Instance template="ConfigPage" />
             </engine:Tab>
         </engine:TabView>
     </engine:VisualElement>

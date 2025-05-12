@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\Core\Entities\Task.cs" />
     <Compile Include="Assets\Scripts\Utils\TextPop.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Buyable.cs" />
+    <Compile Include="Assets\Scripts\Core\Config\GameConfig.cs" />
     <Compile Include="Assets\Scripts\UI\ConfirmationWindow.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\UI\WindowUI.cs" />
+    <Compile Include="Assets\Scripts\Core\Config\ConfigUI.cs" />
     <Compile Include="Assets\Scripts\Utils\AudioManager.cs" />
     <Compile Include="Assets\Scripts\UI\PauseWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\IconManager.cs" />
@@ -92,6 +94,7 @@
     <None Include="Assets\Resources\UI\TestingTemplates\project.uxml" />
     <None Include="Assets\Resources\UI\ShopPage.uxml" />
     <None Include="Assets\Resources\UI\ProjectsPage.uxml" />
+    <None Include="Assets\Resources\UI\ConfigPage.uxml" />
     <None Include="Assets\Resources\UI\TestingTemplates\testBlock.uxml" />
     <None Include="Assets\todo.txt" />
     <None Include="Assets\Resources\UI\general.uss" />

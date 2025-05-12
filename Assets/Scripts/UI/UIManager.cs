@@ -1,3 +1,4 @@
+using Assets.Scripts.Core.Config;
 using Assets.Scripts.Data;
 using Assets.Scripts.Models;
 using Assets.Scripts.UI;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -23,6 +25,7 @@ public class UIManager : MonoBehaviour
     public VisualElement messagebox;
     public VisualElement gameButtons;
 
+    public VisualElement configContent;
 
     //GAME UI
     Label simulationTimeLabel;
@@ -37,6 +40,7 @@ public class UIManager : MonoBehaviour
     //GAME UI
 
     Game Game;
+    public GameConfig GameConfig;
 
     public VisualElement Root;
 
@@ -50,7 +54,9 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        Game = new Game(this);
+        Game = new Game(this, GameConfig);
+        
+
 
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
@@ -61,6 +67,7 @@ public class UIManager : MonoBehaviour
         projectsContent = Root.Q<VisualElement>("projectsContent");
         tasksContent = Root.Q<VisualElement>("tasksContent");
         shopContent = Root.Q<VisualElement>("shopContent");
+
 
         messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
         gameButtons = Root.Q<VisualElement>("gameButtons");
@@ -119,7 +126,7 @@ public class UIManager : MonoBehaviour
         Game.NewGame();
 
         CreateNavBar();
-
+        ConfigUI configUI = new ConfigUI(this);
 
     }
     void ClearContainers()
@@ -138,7 +145,9 @@ public class UIManager : MonoBehaviour
 
     private void LoadGame()
     {
-        Game = new Game(this);
+        Game = new Game(this, GameConfig);
+
+        ConfigUI configUI = new ConfigUI(this);
 
         Game.OnNewProject += NewProjectUI;
 
@@ -201,7 +210,6 @@ public class UIManager : MonoBehaviour
                     portrait: Game.workerGenerator.GetPortrait(loadedWorker.PortraitIndex),
                     specialty: Specialty.Get(loadedWorker.Specialty),
                     skill: loadedWorker.Skill,
-                    efficiency: loadedWorker.Efficiency,
                     happiness: loadedWorker.Happiness,
                     project: null,
                     game: Game,
@@ -219,7 +227,6 @@ public class UIManager : MonoBehaviour
                     portrait: Game.workerGenerator.GetPortrait(loadedWorker.PortraitIndex),
                     specialty: Specialty.Get(loadedWorker.Specialty),
                     skill: loadedWorker.Skill,
-                    efficiency: loadedWorker.Efficiency,
                     project: null,
                     game: Game,
                     health: loadedWorker.Health,
@@ -362,7 +369,6 @@ public class UIManager : MonoBehaviour
                 Stress = worker.Stress,
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
-                Efficiency = worker.Efficiency,
                 Xp = worker.Xp,
             });
         }
@@ -379,7 +385,6 @@ public class UIManager : MonoBehaviour
                 Stress = worker.Stress,
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
-                Efficiency = worker.Efficiency,
                 Xp = worker.Xp,
             });
         }
@@ -1530,5 +1535,6 @@ public class UIManager : MonoBehaviour
             }
         };
         messagebox.Insert(0,label);
+
     }
 }

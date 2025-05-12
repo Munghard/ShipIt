@@ -386,4 +386,10 @@ Textfield
 .unity-base-slider__tracker{
     background-color: var(--window);
 }
-
+.TextPop{
+    -unity-font-definition: url("project://database/Assets/Resources/fonts/BubblegumSDF.asset") 
+}
+.unity-header-drawer__label{
+    font-size:30px;
+    margin-top:20px; 
+}

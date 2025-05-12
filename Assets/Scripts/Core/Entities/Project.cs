@@ -41,10 +41,10 @@ public class Project
         Description = description;
         Difficulty = difficulty;
         Duration = duration;
-        ReputationNeeded = (int)ReputationNeededFromLevelFormula(difficulty);
-        ReputationGain = (int)(difficulty) * 100;
+        ReputationNeeded = (int)game.GameConfig.ReputationNeededFromLevelFormula(difficulty);
+        ReputationGain = game.GameConfig.ReputationGainOnProjectComplete(difficulty);
         StartDuration = startDuration ?? duration;
-        Pay = pay ?? Mathf.FloorToInt(difficulty * 100);
+        Pay = pay ?? game.GameConfig.GetProjectPay(difficulty);
         Status = "pending";
         Icon = game.iconManager.GetIcon(32).SheetTexture;
         Tasks = new List<Task>(); // Initialize Tasks first
@@ -55,14 +55,7 @@ public class Project
         } 
     }
 
-    public static int ReputationNeededFromLevelFormula(int difficulty)
-    {
-        return (difficulty - 1) * 500;
-    }
-    public static int DifficultyFromReputation(int reputation)
-    {
-        return Mathf.FloorToInt(((float)reputation / 500f) + 1);
-    }
+    
 
     private void SetStatus(string status)
     {
@@ -75,7 +68,10 @@ public class Project
         List<Task> allTasks = TaskLibrary.GetMainTasks().ToList();
         List<Task> createdTasks = new();
 
-        int maxTasks = Mathf.Clamp((int)Difficulty * 2, 1, allTasks.Count);
+        int baseTasks = Mathf.RoundToInt(Mathf.Pow(Difficulty, Game.GameConfig.TasksAmountPowerCurve));
+        int randomOffset = UnityEngine.Random.Range(-1, 2); // -1, 0, or +1
+        int maxTasks = Mathf.Clamp(baseTasks + randomOffset, 1, allTasks.Count);
+
 
         foreach (var def in allTasks.Where(t=>t.Difficulty <= Difficulty).OrderBy(_ => UnityEngine.Random.value).Take(maxTasks))
         {
@@ -203,7 +199,7 @@ public class Project
 
         foreach (var worker in Game.Workers)
         {
-            worker.DecreaseStress(50);
+            worker.DecreaseStress(Game.GameConfig.StressDecreaseProjectComplete(Difficulty));
         }
 
         Game.GainMoney(Pay,"Project completion");

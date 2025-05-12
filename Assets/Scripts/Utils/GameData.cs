@@ -32,7 +32,6 @@ namespace Assets.Scripts.Utils
         public float Health;
         public float Happiness;
         public float Stress;
-        public float Efficiency;
         public float Xp;
         public WorkerData() { }
 

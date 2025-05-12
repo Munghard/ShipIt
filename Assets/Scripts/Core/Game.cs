@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using Assets.Scripts.UI;
+using Unity.VisualScripting;
 
 public class Game
 {
@@ -54,17 +55,21 @@ public class Game
 
     public System.Action<List<Worker>> OnAvailableWorkersChanged;
 
+    public GameConfig GameConfig;
+
     PlayerInput PlayerInput;
     UIManager UIManager;
-    public Game(UIManager uIManager)
+    public Game(UIManager uIManager, GameConfig gameConfig)
     {
+        GameConfig = gameConfig;
         PlayerInput = new(this);
-        textPop = new TextPop();
+        textPop = new TextPop(uIManager);
         iconManager = new IconManager();
         workerGenerator = new WorkerGenerator();
-        Load();
         Debug.Log("New game instance created");
         UIManager = uIManager;
+        GameConfig = gameConfig;
+        Load();
     }
     public void NewGame()
     {
@@ -80,15 +85,15 @@ public class Game
         
         ScaledDeltaTime = Time.deltaTime * TimeScale;
 
-        SetMoney(0);
-        SetReputation(0);
+        SetMoney(GameConfig.StartingMoney);
+        SetReputation(GameConfig.StartingRep);
 
-        RollWorkersForHire(3);
-        RollProjects(3);
-        RollBuyables(3);
+        RollWorkersForHire(GameConfig.RolledWorkersAmount);
+        RollProjects(GameConfig.RolledProjectsAmount);
+        RollBuyables(GameConfig.RolledBuyablesAmount);
 
         var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100);
-        var worker = new Worker("Willy Workman",workerGenerator.GetPortrait(133), Specialty.Get("General"), 1, 100, project, this);
+        var worker = new Worker(GameConfig.StartingWorker.Name,workerGenerator.GetPortrait(GameConfig.StartingWorker.PortraitIndex), Specialty.Get(GameConfig.StartingWorker.Specialty), GameConfig.StartingWorker.Skill ,GameConfig.StartingWorker.Level, project, this);
         AddWorker(worker);
         AddProject(project);
 
@@ -109,11 +114,13 @@ public class Game
     {
         Reputation -= amount;
         OnReputationChanged?.Invoke(Reputation);
+        textPop.New($"-{amount}Rep", new Vector2(Screen.width / 2, Screen.height / 2), Color.magenta);
     }
     public void GainReputation(int amount)
     {
         Reputation += amount;
         OnReputationChanged?.Invoke(Reputation);
+        textPop.New($"+{amount}Rep", new Vector2(Screen.width / 2, Screen.height / 2), Color.magenta);
     }
     public bool HasReputation(int amount)
     {
@@ -155,9 +162,9 @@ public class Game
         AvailableProjects = new List<Project>(); // clear old projects
         for (int i = 0; i < num; i++)
         {
-            int difficulty = Random.Range(1, Project.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
-            float duration = Random.Range(10, 20) * 60 * difficulty; // multiply time with difficulty
-            int pay = (Mathf.FloorToInt(difficulty * 100)) + Random.Range(50, 200);
+            int difficulty = Random.Range(1, GameConfig.DifficultyFromReputation(Reputation)); // should only roll projects you have rep for
+            float duration = GameConfig.GetProjectDuration(difficulty); // multiply time with difficulty
+            int pay = GameConfig.GetProjectPay(difficulty);
             var project = new Project(this, "Project" + i, "Project description placeholder", difficulty, duration, pay);
             AvailableProjects.Add(project);
         }
@@ -181,7 +188,7 @@ public class Game
                 workerGenerator.GetRandomPortrait(),
                 Specialty.GenerateRandomSpecialty(),
                 skill,
-                100f,
+                Mathf.Max(Reputation / GameConfig.ReputationToHiresLevelRatio,1),
                 null,
                 this
             );
@@ -224,7 +231,7 @@ public class Game
         }
         foreach (var worker in Workers)
         {
-            worker.DecreaseStress(timeToPass * worker.StressDecreasePerSecond);
+            worker.DecreaseStress(timeToPass * GameConfig.GetStressDecreasePerSecond(worker.Skill));
         }
     }
 
@@ -248,9 +255,9 @@ public class Game
     {
         Debug.Log($"Project {project.Name} completed!");
         textPop.New("Project completed!", project.GetWindowCenter(), Color.green);
-        GainReputation(Mathf.FloorToInt(project.Difficulty * 100));
-        RollWorkersForHire(3);
-        RollProjects(3);
+        GainReputation(GameConfig.ReputationGainOnProjectComplete(project.Difficulty));
+        RollWorkersForHire(GameConfig.RolledWorkersAmount);
+        RollProjects(GameConfig.RolledProjectsAmount);
     }
 
     public void RemoveProject(Project project)
@@ -292,10 +299,10 @@ public class Game
         SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
 
         repTimer += ScaledDeltaTime;
-        while (repTimer >= 5f) // lose 1 rep every 5 seconds
+        while (repTimer >= GameConfig.RepLoseFrequencySeconds) // lose 1 rep every 5 seconds
         {
             repTimer = 0f;
-            if(Reputation > 0)ReduceReputation(1);
+            if(Reputation > 0) ReduceReputation(GameConfig.RepLostPerTick);
         }
 
 
