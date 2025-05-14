@@ -234,6 +234,35 @@ Textfield
     transition: all 0.3s ease;
 }
 
+
+.alert-white{
+    background-color:gray;
+    border-color:white; 
+    transform:scale(1.1);
+    border-radius: 8px;
+    transition:all 0.2s ease; 
+ } 
+ .alert-yellow{
+    background-color:yellow;
+    border-color:yellow; 
+    transform:scale(1.1);
+    border-radius: 8px;
+    transition:all 0.2s ease; 
+ } 
+ .alert-green{
+    background-color:green;
+    border-color:chartreuse; 
+    transform:scale(1.1);
+    border-radius: 8px;
+    transition:all 0.2s ease; 
+ } 
+.alert-red{ 
+    background-color:darkred;
+    border-color:red; 
+    transform:scale(1.1);
+    border-radius: 8px;
+    transition:all 0.2s ease; 
+}
 #header {
     border-width: 0 0 4px 0;
     border-color: var(--border);

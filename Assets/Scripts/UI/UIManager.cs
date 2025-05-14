@@ -2,6 +2,7 @@ using Assets.Scripts.Core.Config;
 using Assets.Scripts.Data;
 using Assets.Scripts.Models;
 using Assets.Scripts.UI;
+using Assets.Scripts.UI.Window;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -107,21 +108,7 @@ public class UIManager : MonoBehaviour
         gameButtons.Add(btnSave);
 
 
-        Game.OnNewProject += NewProjectUI;
-
-        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
-
-        Game.OnProjectsChanged += ProjectsChanged;
-
-        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
-
-        Game.OnNewWorker += NewWorkerUI;
-
-        Game.OnWorkersChanged += WorkersChanged;
-
-        Game.textPop.OnNewTextPop += NewMessageBox;
-
-        Game.OnProjectsChanged += UpdateShop;
+        SetGameEventListeners(Game);
 
         Game.NewGame();
 
@@ -148,27 +135,8 @@ public class UIManager : MonoBehaviour
         Game = new Game(this, GameConfig);
 
         ConfigUI configUI = new ConfigUI(this);
-
-        Game.OnNewProject += NewProjectUI;
-
-        Game.OnAvailableProjectsChanged += AvailableProjectsChanged;
-
-        Game.OnProjectsChanged += ProjectsChanged;
-
-        //foreach (var project in Game.Projects)
-        //{
-        //    project.OnTasksChanged += TasksChanged;
-        //}
-
-        Game.OnAvailableWorkersChanged += AvailableWorkersChanged;
-
-        Game.OnNewWorker += NewWorkerUI;
-
-        Game.OnWorkersChanged += WorkersChanged;
-
-        Game.textPop.OnNewTextPop += NewMessageBox;
-
-        Game.OnProjectsChanged += UpdateShop;
+        
+        SetGameEventListeners(Game);
 
         ClearContainers();
 
@@ -202,7 +170,7 @@ public class UIManager : MonoBehaviour
             UpdateShop(Game.Projects);
 
             Game.OnAcquiredBuyablesChanged?.Invoke(Game.acquiredBuyables);
-            
+
             foreach (var loadedWorker in loadedData.Workers)
             {
                 Game.AddWorker(new Worker(
@@ -281,7 +249,7 @@ public class UIManager : MonoBehaviour
                 // Reconstruct tasks for each project
             }
             //load availableProjects
-            foreach (var loadedProject in loadedData.AvailableProjects )
+            foreach (var loadedProject in loadedData.AvailableProjects)
             {
                 var tasks = new List<Task>();
                 foreach (var loadedTask in loadedProject.Tasks)
@@ -312,7 +280,7 @@ public class UIManager : MonoBehaviour
                     tasks: tasks
 
                 );
-                foreach(var task in project.Tasks)
+                foreach (var task in project.Tasks)
                 {
                     task.Project = project;
                 }
@@ -325,6 +293,31 @@ public class UIManager : MonoBehaviour
 
     }
 
+    private void SetGameEventListeners(Game game)
+    {
+        game.OnNewProject += NewProjectUI;
+
+        game.OnAvailableProjectsChanged += AvailableProjectsChanged;
+
+        game.OnProjectsChanged += ProjectsChanged;
+
+        //foreach (var project in Game.Projects)
+        //{
+        //    project.OnTasksChanged += TasksChanged;
+        //}
+
+        game.OnAvailableWorkersChanged += AvailableWorkersChanged;
+
+        game.OnNewWorker += NewWorkerUI;
+
+        game.OnWorkersChanged += WorkersChanged;
+
+        game.textPop.OnNewTextPop += NewMessageBox;
+
+        game.OnProjectsChanged += UpdateShop;
+
+        game.OnWorkerQuit +=(worker)=> ConfirmationWindow.Create(Root,null,null,$"{worker.Name} had enough and quit.");
+    }
 
     private void SaveGame()
     {
@@ -1096,12 +1089,14 @@ public class UIManager : MonoBehaviour
         elements.Add(workersContainer);
 
         
+        
         UpdateTaskWorkers(task, workersContainer, Game.Workers);
 
 
         Game.OnNewWorker += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
         Game.OnWorkerAssigned += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
         Game.OnWorkerFreed += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
+        Game.OnWorkerDied += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
 
         void UpdateWorkerContainer(string status)
         {
@@ -1130,7 +1125,7 @@ public class UIManager : MonoBehaviour
         {
             workersLabel = new Label($"Workers: {string.Join(", ", task.Workers.Select(w => w.Name))}");
         };
-
+            
 
         ProgressBar pBar = new ProgressBar()
         {
@@ -1160,12 +1155,15 @@ public class UIManager : MonoBehaviour
         window.Q<VisualElement>("window").style.position = Position.Relative;
 
         tasksContent.Add(window);
+
+        task.OnStatusChanged += (status) => WindowAlerts.DoAlert(this, window, "alert-green",1);
+
     }
 
     private static void UpdateTaskWorkers(Task task, VisualElement workersContainer, List<Worker> workers)
     {
         workersContainer.Clear();
-        foreach (Worker worker in workers)
+        foreach (Worker worker in workers.Where(w=>w.Status != "dead"))
         {
             Button assignButton = new Button
             {
@@ -1278,14 +1276,15 @@ public class UIManager : MonoBehaviour
 
         lblSpecialty.AddToClassList("info-label");
 
-        Label lblSkill = new Label(new string(worker.Skill.ToString()));
-        lblSkill.style.top = 0;
-        lblSkill.style.right = 0;
-        lblSkill.style.position = Position.Absolute;
-        lblSkill.style.color = Color.cyan;
-        lblSkill.style.backgroundColor = new Color(0.2f,0.2f,0.2f);
+        Label lblLevel = new Label(new string(worker.Level.ToString()));
+        lblLevel.style.top = 0;
+        lblLevel.style.right = 0;
+        lblLevel.style.position = Position.Absolute;
+        lblLevel.style.color = Color.cyan;
+        lblLevel.style.backgroundColor = new Color(0.2f,0.2f,0.2f);
+        lblLevel.tooltip = "Level:" + worker.Level.ToString();
 
-        lblSkill.AddToClassList("info-label");
+        lblLevel.AddToClassList("info-label");
 
 
         elements.Add(mainContainer);
@@ -1305,7 +1304,7 @@ public class UIManager : MonoBehaviour
 
         imgPortrait.Add(btnInfo);
         imgPortrait.Add(lblSpecialty);
-        imgPortrait.Add(lblSkill);
+        imgPortrait.Add(lblLevel);
 
         leftContainer.Add(imgPortrait);
 
@@ -1427,14 +1426,25 @@ public class UIManager : MonoBehaviour
 
         worker.OnHappinessChanged += (value) => haBar.value = value;
 
-
-        leftContainer.Add(sBar);
-        leftContainer.Add(hBar);
-        leftContainer.Add(eBar);
-        leftContainer.Add(xpBar);
-        leftContainer.Add(haBar);
+        if(worker.Status != "dead")
+        {
+            leftContainer.Add(sBar);
+            leftContainer.Add(hBar);
+            leftContainer.Add(eBar);
+            leftContainer.Add(xpBar);
+            leftContainer.Add(haBar);
+        }
 
         var window = new WindowUI(worker.Name, elements, new Vector2(0, 0),null /*CreateFAIcon("user", 32, 32)*/,false,true,false);
+
+        worker.OnStressChanged += (stress) => {
+        if (stress >= 100)
+            {
+                WindowAlerts.DoAlert(this, window, "alert-red", 3); 
+            }
+        };
+        worker.OnXpChanged += (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 1) ;
+        worker.OnLevelChanged+= (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 3) ;
 
         window.OnHeaderChanged += (value) =>  worker.Name = value;
 

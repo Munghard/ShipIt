@@ -1,3 +1,5 @@
+using Assets.Scripts.UI;
+using Assets.Scripts.Utils;
 using UnityEngine;
 
 public class Worker
@@ -125,6 +127,7 @@ public class Worker
         Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
         OnLevelChanged?.Invoke(Level);
         OnNextXpChanged?.Invoke(NextXp);
+        AudioManager.Play("LevelUp");
     }
 
     public void IncreaseStress(float amount)
@@ -207,6 +210,9 @@ public class Worker
         Health = 0;
         SetStatus("dead");
         Game.textPop.New("Died!", GetWindowCenter(), Color.white);
+        Portrait = Game.workerGenerator.GetPortrait(98);
+        Game.OnWorkerDied?.Invoke(this);
+        Game.OnWorkersChanged?.Invoke(Game.Workers);
     }
 
     public void UpdateWorker(float simulationTime)
@@ -249,6 +255,7 @@ public class Worker
             RemoveFromTask();
             Game.RemoveWorker(this);
             Game.textPop.New($"{Name} left the company!", GetWindowCenter(), Color.red);
+            Game.OnWorkerQuit(this);
         }
         
 

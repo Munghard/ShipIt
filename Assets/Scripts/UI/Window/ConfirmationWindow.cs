@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
-namespace Assets.Scripts.UI
+namespace Assets.Scripts.UI.Window
 {
     internal class ConfirmationWindow
     {

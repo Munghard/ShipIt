@@ -6,9 +6,9 @@ using Assets.Scripts.Data;
 using System.Linq;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using Assets.Scripts.UI;
 using Unity.VisualScripting;
-
+using Assets.Scripts.UI;
+using Assets.Scripts.UI.Window;
 public class Game
 {
     public float SimulationTime { get; set; } = 3600;
@@ -39,6 +39,9 @@ public class Game
     public System.Action<Worker> OnNewWorker;
     public System.Action<Worker> OnWorkerAssigned;
     public System.Action<Worker> OnWorkerFreed;
+    public System.Action<Worker> OnWorkerQuit;
+    public System.Action<Worker> OnWorkerDied;
+
     public System.Action<List<Worker>> OnWorkersChanged;
     
     public System.Action<int> OnMoneyChanged;
@@ -98,6 +101,7 @@ public class Game
         AddProject(project);
 
         textPop.New("New game started!", Vector2.zero, Color.white);
+
     }
 
     private void RollBuyables(int num)
@@ -242,7 +246,7 @@ public class Game
         Paused = !Paused;
         if (Paused)
         {
-            PauseWindow = Assets.Scripts.UI.PauseWindow.Create(UIManager.Root,()=> Paused = !Paused);
+            PauseWindow = Assets.Scripts.UI.Window.PauseWindow.Create(UIManager.Root,()=> Paused = !Paused);
             //textPop.New("Paused!", Vector2.zero, Color.white);
         }
         else

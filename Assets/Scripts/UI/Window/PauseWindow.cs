@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
-namespace Assets.Scripts.UI
+
+namespace Assets.Scripts.UI.Window
 {
-    internal class PauseWindow
+    public class PauseWindow
     {
         public static VisualElement Create(VisualElement Parent, System.Action OkCallback)
         {

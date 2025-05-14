@@ -17,6 +17,13 @@ public class TextPop
 
     public void New(string text, Vector2 position, Color color)
     {
+        //CreateOnScreenText(text, ref position, color);
+
+        OnNewTextPop?.Invoke(text, color); // sends to messagebox
+    }
+
+    private void CreateOnScreenText(string text, ref Vector2 position, Color color)
+    {
         var root = UIManager.Root;
         if (root == null) return;
 
@@ -35,9 +42,8 @@ public class TextPop
 
         root.Add(pop);
         activePops.Add(pop);
-        OnNewTextPop?.Invoke(text, color);
 
-        UIManager.StartCoroutine(Animate(pop,position, root));
+        UIManager.StartCoroutine(Animate(pop, position, root));
     }
 
     private IEnumerator Animate(Label pop, Vector2 pos, VisualElement root)
