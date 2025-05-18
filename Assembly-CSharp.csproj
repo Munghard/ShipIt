@@ -69,7 +69,9 @@
     <Compile Include="Assets\Scripts\Core\Entities\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Core\Librarys\TaskLibrary.cs" />
+    <Compile Include="Assets\Scripts\Core\Enums\Locations.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\TimeControlsUI.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\Core\Config\ConfigUI.cs" />
     <Compile Include="Assets\Scripts\Utils\AudioManager.cs" />

@@ -1,5 +1,6 @@
 using Assets.Scripts.UI;
 using Assets.Scripts.Utils;
+using Assets.Scripts.Core.Enums;
 using UnityEngine;
 
 public class Worker
@@ -24,6 +25,8 @@ public class Worker
     public int TasksFailed;
     public int HiringCost;
 
+    public Location Location;
+
     public Sprite Portrait;
 
     public float WindowX, WindowY, WindowW, WindowH;
@@ -42,8 +45,9 @@ public class Worker
     public System.Action<Task> OnTaskChanged;
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
+    public System.Action<Location> OnLocationChanged;
 
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null, Location? location = null)
     {
         Id = id ?? GenerateId();
         Name = name;
@@ -61,13 +65,18 @@ public class Worker
         NextXp = Game.GameConfig.EvalWorkerXpCurve(Level);
         Status = "idle";
         HiringCost = Game.GameConfig.GetHiringCost(Level);
+        location = location??= Location.WORK;
     }
 
     private long GenerateId()
     {
         return long.Parse(System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() + Random.Range(0, 999).ToString());
     }
-
+    public void SetWorkerLocation(Location location)
+    {
+        Location = location;
+        OnLocationChanged?.Invoke(location);
+    }
     public Vector2 GetWindowCenter()
     {
         return new Vector2(WindowX + WindowW / 2f, WindowY + WindowH / 2f);
@@ -127,7 +136,7 @@ public class Worker
         Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
         OnLevelChanged?.Invoke(Level);
         OnNextXpChanged?.Invoke(NextXp);
-        AudioManager.Play("LevelUp");
+        //AudioManager.Play("LevelUp");
     }
 
     public void IncreaseStress(float amount)
@@ -215,6 +224,25 @@ public class Worker
         Game.OnWorkersChanged?.Invoke(Game.Workers);
     }
 
+    internal void IncreaseSkill(int amount)
+    {
+        Skill += amount;
+        OnSkillChanged(Skill);
+    }
+    internal void DecreaseSkill(int amount)
+    {
+        Skill -= amount;
+        OnSkillChanged(Skill);
+    }
+    public bool CanWork()
+    {
+        return Status != "dead" && IsWorkHours();
+    }
+    public bool IsWorkHours()
+    {
+        return Game.GetCurrentHour >= Game.BusinessHours.x && Game.GetCurrentHour <= Game.BusinessHours.y;
+    }
+
     public void UpdateWorker(float simulationTime)
     {
         float deltaTime = Game.ScaledDeltaTime;
@@ -222,6 +250,11 @@ public class Worker
 
         Occupied = Task != null;
         Status = Occupied ? "working" : "idle";
+
+        if (Task != null && !IsWorkHours())
+        {
+            Task.RemoveWorker(this);
+        }
 
         if (Occupied && Task.Status != "completed")
         {
@@ -263,16 +296,7 @@ public class Worker
         {
             IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier); // regenerate health
         }
+
     }
 
-    internal void IncreaseSkill(int amount)
-    {
-        Skill += amount;
-        OnSkillChanged(Skill);
-    }
-    internal void DecreaseSkill(int amount)
-    {
-        Skill -= amount;
-        OnSkillChanged(Skill);
-    }
 }

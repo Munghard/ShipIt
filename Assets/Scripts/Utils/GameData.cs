@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Core.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.Utils
@@ -33,6 +34,7 @@ namespace Assets.Scripts.Utils
         public float Happiness;
         public float Stress;
         public float Xp;
+        public Location Location;
         public WorkerData() { }
 
     }

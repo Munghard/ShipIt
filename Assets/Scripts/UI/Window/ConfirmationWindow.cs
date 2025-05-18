@@ -34,7 +34,10 @@ namespace Assets.Scripts.UI.Window
 
             var buttonContainer = new VisualElement();
             buttonContainer.Add(yesButton);
-            buttonContainer.Add(noButton);
+            if(NoCallback != null)
+            {
+                buttonContainer.Add(noButton);
+            }
             buttonContainer.style.flexDirection = FlexDirection.Row;
             buttonContainer.style.justifyContent = Justify.Center;
             buttonContainer.style.marginTop = 10;

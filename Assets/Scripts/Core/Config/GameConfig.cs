@@ -18,6 +18,10 @@ public class GameConfig : ScriptableObject
     public float RepLoseFrequencySeconds; // 5
     public int RepLostPerTick; // 1
 
+    public Vector2 BusinessHours; // time of day range when workers are in
+
+    public AnimationCurve MaximumAmountOfWorkers; // 1
+
     [Header("Tasks")]
     public float TaskProgressMultiplier; //0.05f
 

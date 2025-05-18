@@ -14,12 +14,79 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartingMoney: 50
   StartingRep: 10
+  StartingWorker:
+    Name: Willy Workman
+    Level: 1
+    Skill: 1
+    Specialty: General
+    PortraitIndex: 133
   RolledWorkersAmount: 3
   RolledProjectsAmount: 3
   RolledBuyablesAmount: 3
   ReputationToHiresLevelRatio: 500
   RepLoseFrequencySeconds: 10
   RepLostPerTick: 1
+  BusinessHours: {x: 6, y: 18}
+  MaximumAmountOfWorkers:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0.002180226
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 490.44388
+      value: 2.0692785
+      inSlope: 0.002180226
+      outSlope: 0.0015666465
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1028.8909
+      value: 2.9128346
+      inSlope: 0.0015666465
+      outSlope: 0.0011399996
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 2014.96
+      value: 4.036953
+      inSlope: 0.0011399996
+      outSlope: 0.00066421326
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 3484.544
+      value: 5.01307
+      inSlope: 0.00066421326
+      outSlope: 0.00015147518
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 10000
+      value: 6
+      inSlope: 0.00015147518
+      outSlope: 0
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   TaskProgressMultiplier: 0.05
   ProjectBasePay: 100
   ProjectBasePayRandomAdd: {x: 0, y: 50}
@@ -34,12 +101,6 @@ MonoBehaviour:
   HireCostPerLevel: 500
   StressDecreaseDifficultyMultiplier: 5
   XpGainFromTaskMultiplier: 10
-  StartingWorker:
-    Name: Willy Workman
-    Level: 1
-    Skill: 1
-    Specialty: General
-    PortraitIndex: 133
   SpecialtySameMultiplier: 1.5
   SpecialtyDifferentMultiplier: 0.2
   StressDecreasePerSecondSkillMultiplier: 0.5

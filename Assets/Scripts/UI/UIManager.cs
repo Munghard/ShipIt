@@ -2,6 +2,7 @@ using Assets.Scripts.Core.Config;
 using Assets.Scripts.Data;
 using Assets.Scripts.Models;
 using Assets.Scripts.UI;
+using Assets.Scripts.UI.HUD;
 using Assets.Scripts.UI.Window;
 using Assets.Scripts.Utils;
 using System;
@@ -29,15 +30,11 @@ public class UIManager : MonoBehaviour
     public VisualElement configContent;
 
     //GAME UI
-    Label simulationTimeLabel;
-    Label timeScaleLabel;
     Label moneyLabel;
     Label repLabel;
+    Label workersLabel;
 
-    Button btnPassTime;
-    Button btnPause;
-    Button btnUp;
-    Button btnDown;
+    TimeControlsUI TimeControlsUI;
     //GAME UI
 
     Game Game;
@@ -51,16 +48,12 @@ public class UIManager : MonoBehaviour
     {
         // load icons
         Icons = Resources.LoadAll<Sprite>("textures/IconsShadow-32").ToList();
-    }
-
-    void Start()
-    {
-        Game = new Game(this, GameConfig);
-        
-
-
+    
+        // Get root
         var uiDocument = GetComponent<UIDocument>();
         Root = uiDocument.rootVisualElement;
+
+        // Get elements
         navbar = Root.Q<VisualElement>("navbar");
         workersContent = Root.Q<VisualElement>("workersContent");
         staffingContent = Root.Q<VisualElement>("staffingContent");
@@ -68,53 +61,53 @@ public class UIManager : MonoBehaviour
         projectsContent = Root.Q<VisualElement>("projectsContent");
         tasksContent = Root.Q<VisualElement>("tasksContent");
         shopContent = Root.Q<VisualElement>("shopContent");
-
-
-        messagebox = Root.Q<VisualElement>("msgBoxScrollView"); // Access the messagebox by name
+        messagebox = Root.Q<VisualElement>("msgBoxScrollView");
         gameButtons = Root.Q<VisualElement>("gameButtons");
+    }
 
+    void Start()
+    {
+        Game = new Game(this, GameConfig);
+
+        TimeControlsUI = new TimeControlsUI(this, navbar, Game);
+        ConfigUI configUI = new ConfigUI(this);
+
+        SetupGameButtons();
+
+        SetGameEventListeners(Game);
+        Game.NewGame();
+        BindGameToUI(Game);
+    }
+
+    private void SetupGameButtons()
+    {
         Button btnNewGame = new();
         btnNewGame.clicked += () =>
         {
-            ConfirmationWindow.Create(Root,() =>
+            ConfirmationWindow.Create(Root, () =>
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            });
-        };    // Add click event handler
+            }, () => { });
+        };
         SetButtonIcon(btnNewGame, "circle-play", "New game");
 
         Button btnLoad = new();
         btnLoad.clicked += () =>
         {
-            ConfirmationWindow.Create(Root, () =>
-            {
-                LoadGame();
-            });
+            ConfirmationWindow.Create(Root, () => LoadGame(), () => { });
         };
         SetButtonIcon(btnLoad, "folder-open", "Load game");
-        
+
         Button btnSave = new();
-        
         btnSave.clicked += () =>
         {
-            ConfirmationWindow.Create(Root, () =>
-            {
-                SaveGame();
-            });
+            ConfirmationWindow.Create(Root, () => SaveGame(), () => { });
         };
         SetButtonIcon(btnSave, "floppy-disk", "Save game");
+
         gameButtons.Add(btnNewGame);
         gameButtons.Add(btnLoad);
         gameButtons.Add(btnSave);
-
-
-        SetGameEventListeners(Game);
-
-        Game.NewGame();
-
-        CreateNavBar();
-        ConfigUI configUI = new ConfigUI(this);
-
     }
     void ClearContainers()
     {
@@ -185,7 +178,8 @@ public class UIManager : MonoBehaviour
                     stress: loadedWorker.Stress,
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
-                    id: loadedWorker.Id
+                    id: loadedWorker.Id,
+                    location: loadedWorker.Location
                 ));
             }
             foreach (var loadedWorker in loadedData.AvailableWorkers)
@@ -201,7 +195,8 @@ public class UIManager : MonoBehaviour
                     stress: loadedWorker.Stress,
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
-                    id: loadedWorker.Id
+                    id: loadedWorker.Id,
+                    location: loadedWorker.Location
                 ));
             }
             Game.OnAvailableWorkersChanged?.Invoke(Game.WorkersForHire);
@@ -317,6 +312,8 @@ public class UIManager : MonoBehaviour
         game.OnProjectsChanged += UpdateShop;
 
         game.OnWorkerQuit +=(worker)=> ConfirmationWindow.Create(Root,null,null,$"{worker.Name} had enough and quit.");
+
+        //game.OnBusinessOpenChanged += (val) => ProjectsChanged(game.Projects);
     }
 
     private void SaveGame()
@@ -363,6 +360,7 @@ public class UIManager : MonoBehaviour
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
+                Location = worker.Location,
             });
         }
         foreach (var worker in Game.WorkersForHire)
@@ -379,6 +377,7 @@ public class UIManager : MonoBehaviour
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
+                Location = worker.Location,
             });
         }
         foreach (var project in Game.Projects)
@@ -462,7 +461,6 @@ public class UIManager : MonoBehaviour
             NewWorkerUI(worker);
         }
     }
-
     private void UpdateShop(List<Project> list)
     {
         shopContent.Clear();
@@ -471,9 +469,6 @@ public class UIManager : MonoBehaviour
             NewBuyableUI(buyable);
         }
     }
-
-
-
     private void AvailableWorkersChanged(List<Worker> list)
     {
         staffingContent.Clear();
@@ -482,7 +477,6 @@ public class UIManager : MonoBehaviour
             NewAvailableWorkerUI(worker);
         }
     }
-
     private void AvailableProjectsChanged(List<Project> list)
     {
         availableProjectsContent.Clear();
@@ -495,6 +489,18 @@ public class UIManager : MonoBehaviour
     {
         projectsContent.Clear();
         tasksContent.Clear();
+        if(list.Count == 0)
+        {
+            var btn = new Button();
+            btn.text = "Quick add project";
+            btn.clicked += () => 
+            {
+                var project = Game.AvailableProjects.FirstOrDefault();
+                Game.RemoveProjectFromAvailableProjects(project);
+                Game.AddProject(project);
+            };
+            projectsContent.Add(btn);
+        }
         foreach (Project project in list) 
         {
             NewProjectUI(project);
@@ -520,44 +526,27 @@ public class UIManager : MonoBehaviour
     {
         // Initial options
 
+        TimeControlsUI = new(this,navbar,Game);
+
         CreateStatsContainer();
-
-        CreateTimeContainer();
-
         //CreateThemeButton();
 
     }
     public void BindGameToUI(Game game)
     {
+        CreateNavBar();
+
         // Unhook previous bindings (if any)
-        game.OnTimeScaleChanged -= OnTimeScaleChangedHandler;
+
         game.OnMoneyChanged -= OnMoneyChangedHandler;
         game.OnReputationChanged -= OnReputationChangedHandler;
 
         // Hook new bindings
-        game.OnTimeScaleChanged += OnTimeScaleChangedHandler;
+
         game.OnMoneyChanged += OnMoneyChangedHandler;
         game.OnReputationChanged += OnReputationChangedHandler;
 
-        // Avoid double-adding UI button events
-        btnPassTime.clicked -= OnPassTimeClicked;
-        btnPassTime.clicked += OnPassTimeClicked;
 
-        btnPause.clicked -= game.TogglePaused;
-        btnPause.clicked += game.TogglePaused;
-
-        btnUp.clicked -= game.DoubleTimeScale;
-        btnUp.clicked += game.DoubleTimeScale;
-
-        btnDown.clicked -= game.HalveTimeScale;
-        btnDown.clicked += game.HalveTimeScale;
-
-        // Handlers
-        void OnTimeScaleChangedHandler(float time)
-        {
-            if (timeScaleLabel != null)
-                timeScaleLabel.text = $"Time scale: {time}x";
-        }
 
         void OnMoneyChangedHandler(int money)
         {
@@ -571,13 +560,8 @@ public class UIManager : MonoBehaviour
                 repLabel.text = $"{rep} Rep";
         }
 
-        void OnPassTimeClicked()
-        {
-            ConfirmationWindow.Create(Message: $"passing 4 hours, are you sure?", Parent: Root, OkCallback: () =>
-            {
-                Game.PassTime(60 * 4);
-            });
-        }
+
+        
     }
 
     private void CreateThemeButton()
@@ -603,8 +587,12 @@ public class UIManager : MonoBehaviour
 
     private void CreateStatsContainer()
     {
+        var oldSC = navbar.Q<VisualElement>("stats-container");
+        if (oldSC != null) navbar.Remove(oldSC);
+
         VisualElement statsContainer = new VisualElement();
         statsContainer.AddToClassList("container");
+        statsContainer.name = "stats-container";
 
         navbar.Add(statsContainer);
 
@@ -626,95 +614,19 @@ public class UIManager : MonoBehaviour
         repLabel.AddToClassList("navbar-label");
 
         statsContainer.Add(repLabel);
-    }
+        
+        workersLabel = new Label($"Workers: {Game.Workers.Count}/{Game.MaximumAmountOfWorkers}");
+        Game.OnWorkersChanged += (workers) => workersLabel.text = $"Workers: {Game.Workers.Count}/{Game.MaximumAmountOfWorkers}";
+        workersLabel.style.color = Color.magenta;
+        workersLabel.AddToClassList("navbar-label");
 
-    private void CreateTimeContainer()
-    {
-        VisualElement vTimeContainer = new VisualElement()
-        {
-            style =
-            {
-                flexDirection = FlexDirection.Column
-            }
-        };
-        vTimeContainer.AddToClassList("container");
-
-        VisualElement hTimeContainer = new VisualElement()
-        {
-            style =
-            {
-                flexDirection = FlexDirection.Row
-            }
-        };
-
-
-        vTimeContainer.AddToClassList("container");
-
-        navbar.Add(vTimeContainer);
-
-        simulationTimeLabel = new Label($"Time: {Game.SimulationTime}")
-        {
-            style =
-            {
-                fontSize = 25
-            }
-        };
-        simulationTimeLabel.name = "simulationTimeLabel";
-        vTimeContainer.Add(simulationTimeLabel);
-
-        timeScaleLabel = new Label($"Time scale: {Game.TimeScale}")
-        {
-            style =
-            {
-                fontSize = 25
-            }
-        };
-        Game.OnTimeScaleChanged += (time) => timeScaleLabel.text = $"Time scale: {time}x";
-
-        timeScaleLabel.AddToClassList("navbar-label");
-
-
-        vTimeContainer.Add(timeScaleLabel);
-
-        btnDown = new Button();
-        SetButtonIcon(btnDown, "backward", "");
-
-        btnDown.clicked += () => Game.HalveTimeScale();
-
-        hTimeContainer.Add(btnDown);
-
-        btnUp = new Button();
-        btnUp.clicked += () => Game.DoubleTimeScale();
-        SetButtonIcon(btnUp, "forward", "");
-
-        hTimeContainer.Add(btnUp);
-
-        btnPause = new Button();
-        SetButtonIcon(btnPause, "pause", "");
-
-        btnPause.clicked += () => Game.TogglePaused();
-
-        hTimeContainer.Add(btnPause);
-        vTimeContainer.Add(hTimeContainer);
-
-        btnPassTime = new Button();
-        SetButtonIcon(btnPassTime, "forward-fast", "Pass time");
-
-        btnPassTime.clicked += () =>
-        {
-            ConfirmationWindow.Create(Message: $"passing 4 hours, are you sure?", Parent: Root, OkCallback: () =>
-            {
-                Game.PassTime(60 * 4); // pass 4 hours?
-            });
-        };
-
-
-        hTimeContainer.Add(btnPassTime);
-
+        statsContainer.Add(workersLabel);
     }
 
     
-    private void SetButtonIcon(Button btn, string name, string text)
+
+    
+    public void SetButtonIcon(Button btn, string name, string text)
     {
         btn.text = string.Empty;
         // Create the container for the button content
@@ -738,34 +650,6 @@ public class UIManager : MonoBehaviour
         btn.Clear();  // Remove any existing content
         btn.Add(buttonContent);  // Add the new container with both icon and label
     }
-    private void SetButtonIconOld(Button btn, Sprite sprite, string text)
-    {
-        btn.text = string.Empty;
-        // Create the container for the button content
-        VisualElement buttonContent = new VisualElement();
-        buttonContent.style.flexDirection = FlexDirection.Row; // Align items horizontally
-        buttonContent.style.alignItems = Align.Center; // Center the icon and label vertically
-
-        // Create the Image element for the icon
-        Image iconImage = new Image();
-        iconImage.sprite = sprite;
-        iconImage.style.width = 24;  // Set the width of the icon (adjust as needed)
-        iconImage.style.height = 24; // Set the height of the icon (adjust as needed)
-
-        // Create the Label for the button's text
-        
-        Label buttonLabel = new Label(text);
-
-        // Add the icon and label to the container
-        buttonContent.Add(iconImage);
-        if(!string.IsNullOrEmpty(text))buttonContent.Add(buttonLabel);
-
-        // Set the content of the button to be the container with the icon and label
-        btn.Clear();  // Remove any existing content
-        btn.Add(buttonContent);  // Add the new container with both icon and label
-    }
-
-
 
 
     private void NewBuyableUI(Buyable buyable)
@@ -857,9 +741,12 @@ public class UIManager : MonoBehaviour
 
     private void NewProjectUI(Project project)
     {
+
         var projectIndex = Game.Projects.IndexOf(project);
 
         var elements = new List<VisualElement>();
+
+        
 
         ProgressBar pBar = new ProgressBar()
         {
@@ -873,7 +760,7 @@ public class UIManager : MonoBehaviour
         pBarFill.style.backgroundColor = ProgressBarColors.Green;
 
         project.OnProgressChanged += (value) => pBar.value = value;
-
+        
 
         ProgressBar dlBar = new ProgressBar()
         {
@@ -886,7 +773,7 @@ public class UIManager : MonoBehaviour
         var dlBarFill = dlBar.Q(className: "unity-progress-bar__progress");
         dlBarFill.style.backgroundColor = ProgressBarColors.Red;
 
-        project.OnDurationChanged += (value) => dlBar.value = value;
+        
 
         Label idLabel = new Label($"ProjectID: {project.Id}");
         Label lowestPriorityLabel = new Label($"Lowest priority: {project.LowestPriority}");
@@ -953,7 +840,8 @@ public class UIManager : MonoBehaviour
         
         project.OnStatusChanged += val => UpdateProjectButtons(project, btnContainer);
 
-        var window = new WindowUI(project.Name, elements, Vector2.zero, CreateFAIcon("folder-closed", 32, 32),false);
+        var window = new WindowUI(project.Name, elements, Vector2.zero, CreateFAIcon("folder-closed", 32, 32), false);
+
         window.AddToClassList("project-window");
 
         window.style.position = Position.Relative;
@@ -962,6 +850,14 @@ public class UIManager : MonoBehaviour
         window.style.paddingTop = 16;
         window.style.paddingBottom = 16;
         window.Q<VisualElement>("window").style.position = Position.Relative;
+        
+        project.OnDurationChanged += (value) => {
+            dlBar.value = value;
+            if (value < 60)
+            {
+                WindowAlerts.DoAlert(this, window, "alert-red", 3, "Alarm");
+            }
+        };
 
         projectsContent.Add(window);
 
@@ -984,7 +880,7 @@ public class UIManager : MonoBehaviour
                     ConfirmationWindow.Create(Message: $"Chance to get paid: {chance * 100f}%, are you sure?",Parent:Root, OkCallback:() =>
                     {
                         project.TurnInProject();
-                    });
+                    }, NoCallback: () => { });
 
                 }
             };
@@ -1097,11 +993,12 @@ public class UIManager : MonoBehaviour
         Game.OnWorkerAssigned += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
         Game.OnWorkerFreed += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
         Game.OnWorkerDied += (_worker) => UpdateTaskWorkers(task, workersContainer, Game.Workers);
+        Game.OnBusinessOpenChanged += (_val) => UpdateWorkerContainer(task.Status);
 
         void UpdateWorkerContainer(string status)
         {
             //bool show = task.CanStart; // override can start
-            bool show = task.Status != "completed"; // override can start
+            bool show = task.Status != "completed" && Game.BusinessOpen; // override can start
 
             workersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             workersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1156,14 +1053,14 @@ public class UIManager : MonoBehaviour
 
         tasksContent.Add(window);
 
-        task.OnStatusChanged += (status) => WindowAlerts.DoAlert(this, window, "alert-green",1);
+        task.OnStatusChanged += (status) => WindowAlerts.DoAlert(this, window, "alert-green",1, "TurningPage");
 
     }
 
     private static void UpdateTaskWorkers(Task task, VisualElement workersContainer, List<Worker> workers)
     {
         workersContainer.Clear();
-        foreach (Worker worker in workers.Where(w=>w.Status != "dead"))
+        foreach (Worker worker in workers.Where(w=>w.CanWork()))
         {
             Button assignButton = new Button
             {
@@ -1313,13 +1210,14 @@ public class UIManager : MonoBehaviour
         {
             text = "Fire",
         };
+
         btnFire.clicked += () =>
         {
-            ConfirmationWindow.Create(Message: $"Are you sure you want to fire {worker.Name}?", Parent: Root, OkCallback: () =>
+            ConfirmationWindow.Create(Parent: Root, Message: $"Are you sure you want to fire {worker.Name}?", OkCallback: () =>
             {
                 Game.RemoveWorker(worker);
                 Game.textPop.New("Fired: " + worker.Name, Vector2.zero, Color.red);
-            });
+            }, NoCallback: () => { });
         };
 
         Label idLabel = new Label($"WorkerID: {worker.Id}");
@@ -1330,6 +1228,7 @@ public class UIManager : MonoBehaviour
         Label specialtyLabel = new Label($"Speciality: {worker.Specialty.Name}");
         Label statusLabel = new Label($"Status: {worker.Status}");
         Label taskLabel = new Label($"Task: {worker.Task?.Name}");
+        Label locationLabel = new Label($"Location: {worker.Location}");
 
 
 
@@ -1339,6 +1238,7 @@ public class UIManager : MonoBehaviour
         rightContainer.Add(skillLabel);
         rightContainer.Add(specialtyLabel);
         rightContainer.Add(statusLabel);
+        rightContainer.Add(locationLabel);
         rightContainer.Add(taskLabel);
 
         rightContainer.Add(btnFire);
@@ -1351,6 +1251,7 @@ public class UIManager : MonoBehaviour
         //worker.OnSpecialtyChanged += val => specialtyLabel.text = $"Speciality: {val}";
         worker.OnStatusChanged += val => statusLabel.text = $"Status: {val}";
         worker.OnTaskChanged += val => taskLabel.text = $"Task: {val?.Name}";
+        worker.OnLocationChanged += val => locationLabel.text = $"Location: {val}";
 
 
         ProgressBar hBar = new ProgressBar()
@@ -1440,11 +1341,11 @@ public class UIManager : MonoBehaviour
         worker.OnStressChanged += (stress) => {
         if (stress >= 100)
             {
-                WindowAlerts.DoAlert(this, window, "alert-red", 3); 
+                WindowAlerts.DoAlert(this, window, "alert-red", 3, "Alert"); 
             }
         };
-        worker.OnXpChanged += (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 1) ;
-        worker.OnLevelChanged+= (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 3) ;
+        worker.OnXpChanged += (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 1, "Writing") ;
+        worker.OnLevelChanged+= (xp) =>  WindowAlerts.DoAlert(this, window, "alert-yellow", 1, "Stamping") ;
 
         window.OnHeaderChanged += (value) =>  worker.Name = value;
 
@@ -1478,8 +1379,8 @@ public class UIManager : MonoBehaviour
         Label nextXpLabel = new Label($"Next xp: {worker.NextXp}");
         Label skillLabel = new Label($"Skill: {worker.Skill}");
         Label specialtyLabel = new Label($"Speciality: {worker.Specialty.Name}");
-        
         Label hireCostLabel = new Label($"Cost: {worker.HiringCost}$");
+
 
         //elements.Add(idLabel);
         elements.Add(levelLabel);
@@ -1490,7 +1391,7 @@ public class UIManager : MonoBehaviour
         elements.Add(hireCostLabel);
 
 
-        bool canHire = Game.HasMoney(worker.HiringCost);
+        bool canHire = Game.HasMoney(worker.HiringCost) && Game.HasSpaceForWorker();
         hireCostLabel.style.color = canHire ? new StyleColor(Color.green) : new StyleColor(Color.red);
 
         Button btnSubmit = new()

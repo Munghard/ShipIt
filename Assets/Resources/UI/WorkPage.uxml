@@ -6,22 +6,22 @@
     <engine:VisualElement name="main" class="main" style="flex-grow: 1; flex-direction: column;">
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1; flex-direction: column; padding-top: 32px; padding-right: 32px; padding-bottom: 32px; padding-left: 32px;">
             <engine:Label text="Work" parse-escape-sequences="false" name="pageHeader" class="pageHeader" style="font-size: 40px; -unity-font-style: bold; margin: 0; border-width: 20px;" />
-            <engine:VisualElement style="flex-direction: row; flex-grow: 0; flex-shrink: 0; height: 650px;">
+            <engine:VisualElement style="flex-direction: row; flex-grow: 0; flex-shrink: 0; height: 50%;">
                 <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
-                    <engine:VisualElement name="projectsContent" class="content" style="flex-direction: column; flex-grow: 1;">
+                    <engine:VisualElement name="projectsContent" class="content" style="flex-direction: column; flex-grow: 1; align-items: flex-start;">
                         <engine:Instance template="project" />
                         <engine:Instance template="project" />
                     </engine:VisualElement>
                 </engine:ScrollView>
                 <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
-                    <engine:VisualElement name="tasksContent" class="content" style="flex-direction: column; flex-grow: 1;">
+                    <engine:VisualElement name="tasksContent" class="content" style="flex-direction: column; flex-grow: 1; align-items: flex-start;">
                         <engine:Instance template="task" style="flex-shrink: 0;" />
                         <engine:Instance template="task" />
                         <engine:Instance template="task" />
                     </engine:VisualElement>
                 </engine:ScrollView>
             </engine:VisualElement>
-            <engine:ScrollView mode="Horizontal" style="height: 515px; flex-grow: 0; flex-shrink: 0; align-items: stretch; align-self: stretch;">
+            <engine:ScrollView mode="Horizontal" style="height: auto; flex-grow: 0; flex-shrink: 0; align-items: stretch; align-self: stretch; min-height: 40%;">
                 <engine:VisualElement name="workersContent" class="content" style="flex-direction: row; flex-grow: 0; justify-content: flex-start; align-items: flex-start; align-self: stretch;">
                     <engine:Instance template="worker" style="flex-shrink: 0;" />
                     <engine:Instance template="worker" style="flex-shrink: 0;" />

@@ -24,3 +24,15 @@ stat for max team size, buyable: bigger office> one tiem purchase increases max 
  split shop into "upgrades" and "consumables boosts"
 
  add a config class that has multipliers for everything to tune the gameplay
+
+
+
+ Worker traits or perks system. ie.
+
+ nightowl > works during the night,
+ workaholic > longer workhours,
+ stressed > takes more stress,
+ slowlearner > half xp gain,
+ fastlearner > double xp gain,
+ multitasker > can be assigned to multiple tasks simultaneously,
+ lazy > stops working randomly,

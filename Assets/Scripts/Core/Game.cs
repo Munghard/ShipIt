@@ -4,23 +4,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.Data;
 using System.Linq;
-using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using Unity.VisualScripting;
-using Assets.Scripts.UI;
 using Assets.Scripts.UI.Window;
 public class Game
 {
-    public float SimulationTime { get; set; } = 3600;
+    public float SimulationTime { get; set; } = 1800;
+    public float GetCurrentHour => (SimulationTime / 60f) % 24f;
 
     public List<Project> Projects = new();
     public List<Project> AvailableProjects = new();
     public List<Worker> Workers = new();
     public List<Worker> WorkersForHire = new();
 
+    public int MaximumAmountOfWorkers => GameConfig? Mathf.FloorToInt(GameConfig.MaximumAmountOfWorkers.Evaluate(Reputation)) : 1;
+
     public List<Buyable> buyables = new();
     public List<Buyable> acquiredBuyables = new();
 
+    
+    private bool _lastBusinessOpen = true;
+    public Vector2 BusinessHours;
+    public bool BusinessOpen => IsWorkHours();
 
     public int Money = 0;
 
@@ -44,6 +48,8 @@ public class Game
 
     public System.Action<List<Worker>> OnWorkersChanged;
     
+    public System.Action<bool> OnBusinessOpenChanged;
+
     public System.Action<int> OnMoneyChanged;
 
     public System.Action<int> OnReputationChanged;
@@ -95,13 +101,44 @@ public class Game
         RollProjects(GameConfig.RolledProjectsAmount);
         RollBuyables(GameConfig.RolledBuyablesAmount);
 
-        var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100);
+        BusinessHours = GameConfig.BusinessHours;
+
+        var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100); 
         var worker = new Worker(GameConfig.StartingWorker.Name,workerGenerator.GetPortrait(GameConfig.StartingWorker.PortraitIndex), Specialty.Get(GameConfig.StartingWorker.Specialty), GameConfig.StartingWorker.Skill ,GameConfig.StartingWorker.Level, project, this);
         AddWorker(worker);
         AddProject(project);
 
         textPop.New("New game started!", Vector2.zero, Color.white);
 
+    }
+    public void UpdateBusinessStatus()
+    {
+        bool current = BusinessOpen;
+        if (current != _lastBusinessOpen)
+        {
+            _lastBusinessOpen = current;
+            OnBusinessStatusChanged(current);
+        }
+    }
+    private void OnBusinessStatusChanged(bool isOpen)
+    {
+        if (isOpen)
+        {
+            AudioManager.Play("DoorBell");
+            Debug.Log("Business is now OPEN");
+            OnBusinessOpenChanged?.Invoke(true);
+        }
+        else
+        {
+            AudioManager.Play("Bell");
+            OnBusinessOpenChanged?.Invoke(false);
+            Debug.Log("Business is now CLOSED");
+        }
+    }
+
+    public bool HasSpaceForWorker()
+    {
+        return Workers.Count < MaximumAmountOfWorkers;
     }
 
     private void RollBuyables(int num)
@@ -118,7 +155,10 @@ public class Game
     {
         Reputation -= amount;
         OnReputationChanged?.Invoke(Reputation);
-        textPop.New($"-{amount}Rep", new Vector2(Screen.width / 2, Screen.height / 2), Color.magenta);
+        if (amount >= 5)
+        {
+            textPop.New($"-{amount}Rep", new Vector2(Screen.width / 2, Screen.height / 2), Color.magenta);
+        }
     }
     public void GainReputation(int amount)
     {
@@ -288,39 +328,12 @@ public class Game
         Debug.Log($"{worker.Name} added to team.");
         OnNewWorker?.Invoke(worker);
         OnWorkersChanged?.Invoke(Workers);
-    }
-    private float repTimer = 0f;
-    public void UpdateGame()
-    {
-        PlayerInput.UpdateInput();
-
-        if (Paused) return;
-
-        // Use deltaTime and TimeScale for your scaled time calculations
-        ScaledDeltaTime = Time.deltaTime * TimeScale;
-
-        // Update SimulationTime based on custom TimeScale
-        SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
-
-        repTimer += ScaledDeltaTime;
-        while (repTimer >= GameConfig.RepLoseFrequencySeconds) // lose 1 rep every 5 seconds
+        worker.OnLevelChanged += (level) =>
         {
-            repTimer = 0f;
-            if(Reputation > 0) ReduceReputation(GameConfig.RepLostPerTick);
-        }
-
-
-        foreach (var project in Projects)
-        {
-            project.UpdateProject(SimulationTime);
-            foreach (var task in project.Tasks)
-                task.UpdateTask(SimulationTime);
-        }
-
-        foreach (var worker in Workers.ToList())
-            worker.UpdateWorker(SimulationTime);
+            Paused = true;
+            ConfirmationWindow.Create(UIManager.Root, ()=>Paused = false, Message: $"{worker.Name} has been promoted to level:{level}!");
+        };
     }
-
     internal void AddBuyableToAcquired(Buyable buyable)
     {
         acquiredBuyables.Add(buyable);
@@ -331,5 +344,58 @@ public class Game
     {
         Workers.Remove(worker);
         OnWorkersChanged?.Invoke(Workers);
+    }
+
+    public bool IsWorkHours()
+    {
+        return GetCurrentHour >= BusinessHours.x && GetCurrentHour <= BusinessHours.y;
+    }
+    // timer stuff
+    private float repTimer = 0f;
+    private float businessCheckTimer = 0f;
+    private float businessCheckInterval = 60f; // Check every n second
+    public void UpdateGame()
+    {
+        // INPUT
+        PlayerInput.UpdateInput();
+
+        if (Paused) return;
+
+
+        // TIME
+
+        // Use deltaTime and TimeScale for your scaled time calculations
+        ScaledDeltaTime = Time.deltaTime * TimeScale;
+
+        // Update SimulationTime based on custom TimeScale
+        SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
+
+        // Throttle business status checks to not update every frame
+        businessCheckTimer += ScaledDeltaTime;
+        if (businessCheckTimer >= businessCheckInterval)
+        {
+            businessCheckTimer = 0f;
+            UpdateBusinessStatus();
+        }
+
+        //REP LOSS
+        repTimer += ScaledDeltaTime;
+        while (repTimer >= GameConfig.RepLoseFrequencySeconds) // lose 1 rep every 5 seconds
+        {
+            repTimer = 0f;
+            if(Reputation > 0) ReduceReputation(GameConfig.RepLostPerTick);
+        }
+
+
+        //UPDATE
+        foreach (var project in Projects)
+        {
+            project.UpdateProject(SimulationTime);
+            foreach (var task in project.Tasks)
+                task.UpdateTask(SimulationTime);
+        }
+
+        foreach (var worker in Workers.ToList())
+            worker.UpdateWorker(SimulationTime);
     }
 }

@@ -208,6 +208,7 @@ public class Project
         SetStatus("paid out");
 
         OnCompleted?.Invoke(this);
+        Game.RemoveProject(this);
     }
     public void UpdateProject(float simulatedTime)
     {
