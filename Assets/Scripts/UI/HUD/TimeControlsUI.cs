@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.UI.Window;
+using System;
 using UnityEngine.UIElements;
 
 namespace Assets.Scripts.UI.HUD
@@ -8,7 +9,7 @@ namespace Assets.Scripts.UI.HUD
         public Label businessOpenLabel;
         public Label simulationTimeLabel;
         public Label timeScaleLabel;
-        private Button btnUp, btnDown, btnPause, btnPassTime, btnPlay;
+        private Button btnUp, btnDown, btnPause, btnPassTime, btnPlay, btnPassTimeTillMorning;
 
         private readonly UIManager uiManager;
         private readonly Game game;
@@ -73,11 +74,20 @@ namespace Assets.Scripts.UI.HUD
             uiManager.SetButtonIcon(btnPause, "pause", "");
             hTimeContainer.Add(btnPause);
 
+            var hpTimeContainer = new VisualElement();
+            hpTimeContainer.style.flexDirection = FlexDirection.Row;
+
             btnPassTime = new Button();
             uiManager.SetButtonIcon(btnPassTime, "forward-fast", "Pass time");
 
+            btnPassTimeTillMorning = new Button();
+            uiManager.SetButtonIcon(btnPassTimeTillMorning, "forward-fast", "Pass day");
+
+            hpTimeContainer.Add(btnPassTime);
+            hpTimeContainer.Add(btnPassTimeTillMorning);
+
             vTimeContainer.Add(hTimeContainer);
-            vTimeContainer.Add(btnPassTime);
+            vTimeContainer.Add(hpTimeContainer);
         }
 
         private void BindEvents()
@@ -90,6 +100,9 @@ namespace Assets.Scripts.UI.HUD
 
             btnPassTime.clicked -= OnPassTimeClicked;
             btnPassTime.clicked += OnPassTimeClicked;
+            
+            btnPassTimeTillMorning.clicked -= OnPassTimeTillMorningClicked;
+            btnPassTimeTillMorning.clicked += OnPassTimeTillMorningClicked;
 
             btnPause.clicked -= game.TogglePaused;
             btnPause.clicked += game.TogglePaused;
@@ -104,6 +117,26 @@ namespace Assets.Scripts.UI.HUD
 
             btnPlay.clicked -= playAction;
             btnPlay.clicked += playAction;
+        }
+
+        private void OnPassTimeTillMorningClicked()
+        {
+            var timeTillMorning = 0f;
+            if(game.GetCurrentHour > 0 && game.GetCurrentHour < 6)
+            {
+                timeTillMorning =  6f - game.GetCurrentHour;
+            }
+            else
+            {
+                timeTillMorning = (24 - game.GetCurrentHour) + 6f;
+            }
+
+            ConfirmationWindow.Create(
+                Message: $"passing {timeTillMorning.ToString("F1")}h, are you sure?", // add projects with deadline calcs here later
+                Parent: uiManager.Root,
+                OkCallback: () => game.PassTime(60 * timeTillMorning),
+                NoCallback: () => { }
+            );
         }
 
         private void OnTimeScaleChanged(float time)

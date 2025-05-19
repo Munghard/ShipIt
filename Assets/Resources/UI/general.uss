@@ -256,7 +256,13 @@ Textfield
     border-color: white;
     transition: all 0.3s ease;
 }
-
+#tooltip{
+    background-color: var(--window-bg);
+    opacity: 0.95;
+    border-width: 4px;
+    border-color: var(--border);
+    border-radius: 8px;
+}
 
 .alert-white{
     background-color:gray;

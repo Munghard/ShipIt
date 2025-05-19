@@ -111,7 +111,7 @@ public class Task
             else if (worker.Specialty.Name == "Management" && Specialty.Name != "General")
                 multiplier = Game.GameConfig.SpecialtyDifferentMultiplier;
 
-            Progress += (multiplier * worker.Efficiency * deltaTime * Game.GameConfig.TaskProgressMultiplier) / TimeToComplete;
+            Progress += (worker.baseWorkSpeed * multiplier * worker.Efficiency * deltaTime * Game.GameConfig.TaskProgressMultiplier) / TimeToComplete;
             OnProgressChanged?.Invoke(Progress);
         }
 

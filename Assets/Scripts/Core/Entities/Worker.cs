@@ -2,6 +2,9 @@ using Assets.Scripts.UI;
 using Assets.Scripts.Utils;
 using Assets.Scripts.Core.Enums;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+using Assets.Scripts.UI.Window;
 
 public class Worker
 {
@@ -46,8 +49,16 @@ public class Worker
     public System.Action<string> OnStatusChanged;
     public System.Action<int> OnSkillChanged;
     public System.Action<Location> OnLocationChanged;
+    
+    public System.Action<List<Trait>> OnTraitsChanged;
 
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null, Location? location = null)
+    public List<Trait> Traits = new List<Trait>();
+
+    public float baseWorkSpeed = 1f;
+    public float baseLearnSpeed = 1f;
+    public float baseHealSpeed = 1f;
+
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null, Location? location = null,List<Trait> traits = null)
     {
         Id = id ?? GenerateId();
         Name = name;
@@ -66,6 +77,7 @@ public class Worker
         Status = "idle";
         HiringCost = Game.GameConfig.GetHiringCost(Level);
         location = location??= Location.WORK;
+        traits = traits ?? new List<Trait>();
     }
 
     private long GenerateId()
@@ -133,10 +145,29 @@ public class Worker
         Skill += 1;
         Level += 1;
         NextXp = Game.GameConfig.EvalWorkerXpCurve(Level);
-        Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
         OnLevelChanged?.Invoke(Level);
         OnNextXpChanged?.Invoke(NextXp);
+        var trait = AddRandomTrait(); // add one trait every level
+        Game.textPop.New($"Level up! {Level}", GetWindowCenter(), Color.yellow);
+        
+        Game.Paused = true;
+        ConfirmationWindow.Create(
+            Game.UIManager.Root,
+            () => Game.Paused = false,
+            Message: $"{Name} has been promoted to level:{Level}\n" +
+            $"New trait: {trait.TraitName}\n" +
+            $"{trait.Description}"
+        );
+        
         //AudioManager.Play("LevelUp");
+    }
+
+    private Trait AddRandomTrait()
+    {
+        var trait = Game.TraitManager.GetRandomTrait();
+        Traits.Add(trait);
+        OnTraitsChanged?.Invoke(Traits);
+        return trait;
     }
 
     public void IncreaseStress(float amount)
@@ -209,7 +240,36 @@ public class Worker
         }
         OnHealthChanged?.Invoke(Health);
     }
+    private void GoToHospital()
+    {
+        var hospitalBill = Random.Range(100, 1000); // roll bill
 
+        SetWorkerLocation(Location.HOSPITAL);
+        ConfirmationWindow.Create(
+            Game.UIManager.Root,
+            () =>
+            {
+                Game.Paused = false;
+
+                if(Game.HasMoney(hospitalBill))
+                {
+                    Game.SpendMoney(hospitalBill);
+                }
+            },
+            () =>
+            {
+                var deathRoll = Random.value;
+                if(deathRoll < Game.GameConfig.DeathChance)
+                {
+                    Death();
+                }
+            },
+            Message: $"{Name} has collapsed from stress and was taken to a hospital.\n" +
+            $"Pay the hospital bill or {Name} might die.\n",
+            canConfirm:Game.HasMoney(hospitalBill)
+        );
+
+    }
     public void Death()
     {
         if (Status == "dead") return;
@@ -236,7 +296,7 @@ public class Worker
     }
     public bool CanWork()
     {
-        return Status != "dead" && IsWorkHours();
+        return Status != "dead" && Location == Location.WORK; // not dead and at work
     }
     public bool IsWorkHours()
     {
@@ -275,7 +335,7 @@ public class Worker
         {
             DecreaseHappiness(deltaTime * Game.GameConfig.HappinessLossMultiplier);
             DecreaseHealth(deltaTime * Game.GameConfig.HealthLossMultiplier);
-            if (Health <= 0) Death();
+            if (Health <= 0) GoToHospital();
         }
         else
         {
@@ -294,9 +354,10 @@ public class Worker
 
         if (Stress <= 0 && Health < MaxHealth)
         {
-            IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier); // regenerate health
+            IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier * baseHealSpeed); // regenerate health
         }
 
     }
+
 
 }

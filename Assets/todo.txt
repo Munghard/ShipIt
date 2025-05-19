@@ -28,11 +28,34 @@ stat for max team size, buyable: bigger office> one tiem purchase increases max 
 
 
  Worker traits or perks system. ie.
+ 
+ Talent / Flaw
 
  nightowl > works during the night,
- workaholic > longer workhours,
+
+ stress resistant > takes less stress,
+ 
  stressed > takes more stress,
+ workaholic > longer workhours,
+ 
+ alkoholic > doesnt come in some days,
+ drug addict > doesnt come in some days,
+
  slowlearner > half xp gain,
+
+ lazy > stops working randomly,
+ 
  fastlearner > double xp gain,
  multitasker > can be assigned to multiple tasks simultaneously,
- lazy > stops working randomly,
+
+ randomize trait assignemnt to workers on roll
+
+
+ make settings scriptable object and uipage bind it 
+ audio volume
+
+
+ needs some function for releasing from hospital, maybe recover health based on some multiplier and release
+ maybe on day change at 00:00 check if health full then release otherwise stay at hospital for another full day
+ 
+ instead of skipping time set timescale very large and pass time organically for events and time based shiet

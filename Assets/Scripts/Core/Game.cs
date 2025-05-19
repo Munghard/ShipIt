@@ -6,6 +6,8 @@ using Assets.Scripts.Data;
 using System.Linq;
 using UnityEngine.UIElements;
 using Assets.Scripts.UI.Window;
+using System.Collections;
+using System.Xml.Linq;
 public class Game
 {
     public float SimulationTime { get; set; } = 1800;
@@ -66,8 +68,10 @@ public class Game
 
     public GameConfig GameConfig;
 
+    public TraitManager TraitManager;
+
     PlayerInput PlayerInput;
-    UIManager UIManager;
+    public UIManager UIManager;
     public Game(UIManager uIManager, GameConfig gameConfig)
     {
         GameConfig = gameConfig;
@@ -78,7 +82,12 @@ public class Game
         Debug.Log("New game instance created");
         UIManager = uIManager;
         GameConfig = gameConfig;
+        TraitManager = new TraitManager();
         Load();
+        
+        BusinessHours = GameConfig.BusinessHours;
+
+        ScaledDeltaTime = Time.deltaTime * TimeScale;
     }
     public void NewGame()
     {
@@ -92,7 +101,6 @@ public class Game
         OnAvailableProjectsChanged?.Invoke(AvailableProjects);
         OnAvailableWorkersChanged?.Invoke(WorkersForHire);
         
-        ScaledDeltaTime = Time.deltaTime * TimeScale;
 
         SetMoney(GameConfig.StartingMoney);
         SetReputation(GameConfig.StartingRep);
@@ -100,8 +108,6 @@ public class Game
         RollWorkersForHire(GameConfig.RolledWorkersAmount);
         RollProjects(GameConfig.RolledProjectsAmount);
         RollBuyables(GameConfig.RolledBuyablesAmount);
-
-        BusinessHours = GameConfig.BusinessHours;
 
         var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100); 
         var worker = new Worker(GameConfig.StartingWorker.Name,workerGenerator.GetPortrait(GameConfig.StartingWorker.PortraitIndex), Specialty.Get(GameConfig.StartingWorker.Specialty), GameConfig.StartingWorker.Skill ,GameConfig.StartingWorker.Level, project, this);
@@ -117,19 +123,26 @@ public class Game
         if (current != _lastBusinessOpen)
         {
             _lastBusinessOpen = current;
-            OnBusinessStatusChanged(current);
+            ChangeBusinessStatus(current);
         }
     }
-    private void OnBusinessStatusChanged(bool isOpen)
+    private void ChangeBusinessStatus(bool isOpen)
     {
         if (isOpen)
         {
+            foreach (var worker in Workers)
+            {
+                worker.SetWorkerLocation(Assets.Scripts.Core.Enums.Location.WORK); // check traits, ie druggies might not come in at all and alcoholics might be late
+            }
             AudioManager.Play("DoorBell");
             Debug.Log("Business is now OPEN");
             OnBusinessOpenChanged?.Invoke(true);
         }
         else
         {
+            foreach (var worker in Workers) {
+                worker.SetWorkerLocation(Assets.Scripts.Core.Enums.Location.HOME); // check traits, workaholics might not leave when closed
+            }
             AudioManager.Play("Bell");
             OnBusinessOpenChanged?.Invoke(false);
             Debug.Log("Business is now CLOSED");
@@ -226,17 +239,21 @@ public class Game
 
             float averageSkill = Workers.Count > 0 ? totalSkill / Workers.Count : 0;
             float skill = Random.Range(1, averageSkill + 1);
+            int level = Mathf.Max(Reputation / GameConfig.ReputationToHiresLevelRatio, 1);
 
             var newWorker = new Worker(
                 workerGenerator.GenerateRandomName(),
                 workerGenerator.GetRandomPortrait(),
                 Specialty.GenerateRandomSpecialty(),
                 skill,
-                Mathf.Max(Reputation / GameConfig.ReputationToHiresLevelRatio,1),
+                level,
                 null,
                 this
             );
-
+            for (int ii = 0; ii < level; ii++)
+            {
+                newWorker.Traits.Add(TraitManager.GetRandomTrait()); // add one trait every level
+            }
             WorkersForHire.Add(newWorker);
         }
         OnAvailableWorkersChanged?.Invoke(WorkersForHire);
@@ -262,23 +279,43 @@ public class Game
         
     public void SetTimeScale(float scale)
     {
-        TimeScale = Mathf.Clamp(scale, 0.125f, 16f);
+        TimeScale = Mathf.Clamp(scale, 0.125f, 32f);
         OnTimeScaleChanged?.Invoke(TimeScale);
     }
     public void PassTime(float timeToPass)
     {
-        SimulationTime += timeToPass; // 6 h
-        foreach (var project in Projects)
-        {
-            project.Duration -= timeToPass;
-            project.OnDurationChanged?.Invoke(project.Duration);
-        }
-        foreach (var worker in Workers)
-        {
-            worker.DecreaseStress(timeToPass * GameConfig.GetStressDecreasePerSecond(worker.Skill));
-        }
-    }
+        UIManager.StartCoroutine(PassTimeCR(timeToPass));
 
+        //SimulationTime += timeToPass; // 6 h
+        //foreach (var project in Projects)
+        //{
+        //    project.Duration -= timeToPass;
+        //    project.OnDurationChanged?.Invoke(project.Duration);
+        //}
+        //foreach (var worker in Workers)
+        //{
+        //    worker.DecreaseStress(timeToPass * GameConfig.GetStressDecreasePerSecond(worker.Skill));
+        //}
+    }
+    IEnumerator PassTimeCR (float timeToPass){
+        // should prbably disable input or something we'll see
+        TimeScale = 400f;
+        OnTimeScaleChanged?.Invoke(TimeScale);
+        float targetTime = SimulationTime + timeToPass;
+
+        while (SimulationTime < targetTime)
+        {
+            yield return null;
+        }
+        Paused = true;
+        ConfirmationWindow.Create(
+            UIManager.Root,
+            () => Paused = false,
+            Message: $"{(timeToPass / 60f).ToString("F1")}h has passed.."
+        );
+        SetTimeScale(1);
+
+    }
     VisualElement PauseWindow;
     public void TogglePaused()
     {
@@ -328,11 +365,7 @@ public class Game
         Debug.Log($"{worker.Name} added to team.");
         OnNewWorker?.Invoke(worker);
         OnWorkersChanged?.Invoke(Workers);
-        worker.OnLevelChanged += (level) =>
-        {
-            Paused = true;
-            ConfirmationWindow.Create(UIManager.Root, ()=>Paused = false, Message: $"{worker.Name} has been promoted to level:{level}!");
-        };
+
     }
     internal void AddBuyableToAcquired(Buyable buyable)
     {
@@ -397,5 +430,11 @@ public class Game
 
         foreach (var worker in Workers.ToList())
             worker.UpdateWorker(SimulationTime);
+    }
+
+    internal void SetSimulationTime(float simulationTime)
+    {
+        SimulationTime = simulationTime;
+        UpdateBusinessStatus();
     }
 }

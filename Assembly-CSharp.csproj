@@ -65,12 +65,15 @@
     <Compile Include="Assets\Scripts\Utils\TextPop.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Buyable.cs" />
     <Compile Include="Assets\Scripts\Core\Config\GameConfig.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\Trait_Health.cs" />
     <Compile Include="Assets\Scripts\UI\Window\Draggable.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\Trait_WorkSpeed.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Speciality.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Core\Librarys\TaskLibrary.cs" />
     <Compile Include="Assets\Scripts\Core\Enums\Locations.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarColors.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\Trait.cs" />
     <Compile Include="Assets\Scripts\UI\HUD\TimeControlsUI.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Worker.cs" />
     <Compile Include="Assets\Scripts\Core\Config\ConfigUI.cs" />
@@ -81,19 +84,24 @@
     <Compile Include="Assets\Scripts\UI\Window\ConfirmationWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
     <Compile Include="Assets\Scripts\Utils\PortraitData.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\TraitType.cs" />
     <Compile Include="Assets\Scripts\UI\Window\PauseWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\TextWrap.cs" />
     <Compile Include="Assets\Scripts\Utils\SaveManager.cs" />
     <Compile Include="Assets\Scripts\Utils\GameData.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\TraitManager.cs" />
     <Compile Include="Assets\Scripts\Core\Entities\Project.cs" />
     <Compile Include="Assets\Scripts\UI\Window\WindowAlerts.cs" />
+    <Compile Include="Assets\Scripts\Core\Traits\Trait_LearnSpeed.cs" />
     <Compile Include="Assets\Scripts\Core\Librarys\BuyableLibrary.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Tooltip\Tooltip.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Resources\UI\MainUI.uxml" />
     <None Include="Assets\Resources\UI\WorkPage.uxml" />
     <None Include="Assets\Resources\UI\TestingTemplates\worker.uxml" />
+    <None Include="Assets\Resources\UI\Tooltip.uxml" />
     <None Include="Assets\Resources\UI\TestingTemplates\project.uxml" />
     <None Include="Assets\Resources\UI\ShopPage.uxml" />
     <None Include="Assets\Resources\UI\ProjectsPage.uxml" />

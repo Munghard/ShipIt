@@ -139,7 +139,8 @@ public class UIManager : MonoBehaviour
         if (loadedData != null)
         {
             // Set loaded data to game state
-            Game.SimulationTime = loadedData.SimulationTime;
+            
+            Game.SetSimulationTime(loadedData.SimulationTime);
             Game.SetMoney(loadedData.Money);
             Game.SetReputation(loadedData.Reputation);
 
@@ -179,8 +180,10 @@ public class UIManager : MonoBehaviour
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
                     id: loadedWorker.Id,
-                    location: loadedWorker.Location
+                    location: loadedWorker.Location,
+                    traits: new List<Trait>(loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)))
                 ));
+
             }
             foreach (var loadedWorker in loadedData.AvailableWorkers)
             {
@@ -196,7 +199,8 @@ public class UIManager : MonoBehaviour
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
                     id: loadedWorker.Id,
-                    location: loadedWorker.Location
+                    location: loadedWorker.Location,
+                    traits: new List<Trait>(loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)))
                 ));
             }
             Game.OnAvailableWorkersChanged?.Invoke(Game.WorkersForHire);
@@ -361,6 +365,7 @@ public class UIManager : MonoBehaviour
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
                 Location = worker.Location,
+                Traits = worker.Traits.Select(t => t.TraitName).ToList()
             });
         }
         foreach (var worker in Game.WorkersForHire)
@@ -378,6 +383,7 @@ public class UIManager : MonoBehaviour
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
                 Location = worker.Location,
+                Traits = worker.Traits.Select(t => t.TraitName).ToList()
             });
         }
         foreach (var project in Game.Projects)
@@ -1229,7 +1235,12 @@ public class UIManager : MonoBehaviour
         Label statusLabel = new Label($"Status: {worker.Status}");
         Label taskLabel = new Label($"Task: {worker.Task?.Name}");
         Label locationLabel = new Label($"Location: {worker.Location}");
+        Label traitsLabel = new Label($"Traits: {string.Join(", ",worker.Traits.Select(t=>t.TraitName))}"); // needs a ontraitschanged event to update
 
+        worker.OnTraitsChanged += (traits) =>
+        {
+            traitsLabel.text = $"Traits: {string.Join(", ", worker.Traits.Select(t => t.TraitName))}";
+        };
 
 
         rightContainer.Add(levelLabel);
@@ -1240,6 +1251,7 @@ public class UIManager : MonoBehaviour
         rightContainer.Add(statusLabel);
         rightContainer.Add(locationLabel);
         rightContainer.Add(taskLabel);
+        rightContainer.Add(traitsLabel);
 
         rightContainer.Add(btnFire);
 
@@ -1380,6 +1392,7 @@ public class UIManager : MonoBehaviour
         Label skillLabel = new Label($"Skill: {worker.Skill}");
         Label specialtyLabel = new Label($"Speciality: {worker.Specialty.Name}");
         Label hireCostLabel = new Label($"Cost: {worker.HiringCost}$");
+        Label traitsLabel = new Label($"Traits: {string.Join(", ", worker.Traits?.Where(t => t != null && t.TraitName != null).Select(t => t.TraitName) ?? new List<string>())}");
 
 
         //elements.Add(idLabel);
@@ -1389,6 +1402,7 @@ public class UIManager : MonoBehaviour
         elements.Add(skillLabel);
         elements.Add(specialtyLabel);
         elements.Add(hireCostLabel);
+        elements.Add(traitsLabel);
 
 
         bool canHire = Game.HasMoney(worker.HiringCost) && Game.HasSpaceForWorker();

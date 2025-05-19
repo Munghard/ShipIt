@@ -108,5 +108,6 @@ MonoBehaviour:
   StressDecreaseMultiplier: 1
   HealthLossMultiplier: 1
   HealthGainMultiplier: 0.1
+  DeathChance: 0.1
   HappinessGainMultiplier: 0.25
   HappinessLossMultiplier: 0.5

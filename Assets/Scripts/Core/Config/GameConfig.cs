@@ -117,6 +117,8 @@ public class GameConfig : ScriptableObject
     public float HealthLossMultiplier;
     public float HealthGainMultiplier;
 
+    public float DeathChance;
+
     [Header("Happiness")]
 
     public float HappinessGainMultiplier;

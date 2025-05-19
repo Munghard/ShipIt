@@ -5,7 +5,7 @@ namespace Assets.Scripts.UI.Window
 {
     internal class ConfirmationWindow
     {
-        public static WindowUI Create(VisualElement Parent, System.Action OkCallback, System.Action NoCallback = null, string Message = null)
+        public static WindowUI Create(VisualElement Parent, System.Action OkCallback, System.Action NoCallback = null, string Message = null,bool canConfirm = true)
         {
             var elements = new List<VisualElement>();
             var label = new Label("Are you sure you want to proceed?");
@@ -27,6 +27,8 @@ namespace Assets.Scripts.UI.Window
                 OkCallback?.Invoke();
                 DestroyWindow();
             }) { text = "Yes" };
+            yesButton.SetEnabled(canConfirm);
+
             var noButton = new Button(() => {
                 NoCallback?.Invoke();
                 DestroyWindow();

@@ -35,6 +35,7 @@ namespace Assets.Scripts.Utils
         public float Stress;
         public float Xp;
         public Location Location;
+        public List<string> Traits;
         public WorkerData() { }
 
     }

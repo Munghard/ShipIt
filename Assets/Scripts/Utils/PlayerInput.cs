@@ -23,6 +23,10 @@ namespace Assets.Scripts.Utils
             {
                 game.DoubleTimeScale();
             }
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                game.SetTimeScale(1);
+            }
         }
     }
 }
