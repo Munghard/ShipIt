@@ -1,61 +1,65 @@
 ﻿
 
 
-Editable names on workers done
-saving for other pages done
+Editable names on workers DONE
+saving for other pages DONE
 
-avaialble project tasks broken when taking on
+avaialble project tasks broken when taking on 
 
 give full project progress from tasks, makes it more of a gamble.
-consider removing priority lock to encourage completing easy tasks first
+consider removing priority lock to encourage completing easy tasks first DONE
 
 staffing deosnt update on moneychanged
 
-change task ui to have a workers container and worker buttons that change border color on assigned and un assigned
+change task ui to have a workers container and worker buttons that change border color on assigned and un assigned DONE
 
-maybe you get a bonus if you complete the correct priority task like difficulty * 100$
+maybe you get a bonus if you complete the correct priority task like difficulty * 100$ DONE
 
 
-get too much money from completing projects needs  to be way less like 0.1x
+get too much money from completing projects needs  to be way less like 0.1x DONE
 
-stat for max team size, buyable: bigger office> one tiem purchase increases max team size.
+stat for max team size DONE
+
+buyable: bigger office> one tiem purchase increases max team size.
  needs some kind of money sink like paying salary to workers and maybe rent
 
  split shop into "upgrades" and "consumables boosts"
 
- add a config class that has multipliers for everything to tune the gameplay
+ add a config class that has multipliers for everything to tune the gameplay DONE
 
 
 
- Worker traits or perks system. ie.
+ Worker traits or perks system. ie. DONE
  
  Talent / Flaw
 
- nightowl > works during the night,
+	 nightowl > works during the night,
 
- stress resistant > takes less stress,
+	 stress resistant > takes less stress,
  
- stressed > takes more stress,
- workaholic > longer workhours,
+	 stressed > takes more stress,
+	 workaholic > longer workhours,
  
- alkoholic > doesnt come in some days,
- drug addict > doesnt come in some days,
+	 alkoholic > doesnt come in some days,
+	 drug addict > doesnt come in some days,
 
- slowlearner > half xp gain,
+	 slowlearner > half xp gain,
 
- lazy > stops working randomly,
+	 lazy > stops working randomly,
  
- fastlearner > double xp gain,
- multitasker > can be assigned to multiple tasks simultaneously,
+	 fastlearner > double xp gain,
+	 multitasker > can be assigned to multiple tasks simultaneously,
 
- randomize trait assignemnt to workers on roll
+ randomize trait assignemnt to workers on roll DONE
 
 
  make settings scriptable object and uipage bind it 
- audio volume
+	audio volume
 
 
  needs some function for releasing from hospital, maybe recover health based on some multiplier and release
- maybe on day change at 00:00 check if health full then release otherwise stay at hospital for another full day
+	maybe on day change at 00:00 check if health full then release otherwise stay at hospital for another full day
  
- instead of skipping time set timescale very large and pass time organically for events and time based shiet
+ instead of skipping time set timescale very large and pass time organically for events and time based shiet DONE
+
+ tooltip unfinished, needs some way of adding it and triggering it on visualelements DONE

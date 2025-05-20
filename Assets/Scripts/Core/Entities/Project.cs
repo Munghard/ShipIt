@@ -223,15 +223,18 @@ public class Project
         if (Status == "pending")
             SetStatus("in progress");
 
-        //float totalProgress = 0f;
-        //foreach (var task in Tasks)
-        //{
-        //    totalProgress += task.Progress;
-        //}
 
-        //Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f;
+        // progress always
+        float totalProgress = 0f;
+        foreach (var task in Tasks)
+        {
+            totalProgress += task.Progress;
+        }
+        Progress = Tasks.Count > 0 ? (totalProgress / (Tasks.Count * 100f)) * 100f : 0f; 
+        // progress always
 
-        Progress = Tasks.Count > 0 ? (Tasks.Where(t => t.Progress >= 100f).Count() / (float)Tasks.Count) * 100f : 0f;
+
+        //Progress = Tasks.Count > 0 ? (Tasks.Where(t => t.Progress >= 100f).Count() / (float)Tasks.Count) * 100f : 0f; // progress only on task complete
 
         OnProgressChanged?.Invoke(Progress);
 

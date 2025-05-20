@@ -3,6 +3,7 @@ using Assets.Scripts.Data;
 using Assets.Scripts.Models;
 using Assets.Scripts.UI;
 using Assets.Scripts.UI.HUD;
+using Assets.Scripts.UI.Tooltip;
 using Assets.Scripts.UI.Window;
 using Assets.Scripts.Utils;
 using System;
@@ -1004,7 +1005,7 @@ public class UIManager : MonoBehaviour
         void UpdateWorkerContainer(string status)
         {
             //bool show = task.CanStart; // override can start
-            bool show = task.Status != "completed" && Game.BusinessOpen; // override can start
+            bool show = task.Status != "completed" && task.Status != "failed" && Game.BusinessOpen; // override can start
 
             workersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             workersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1210,6 +1211,22 @@ public class UIManager : MonoBehaviour
         imgPortrait.Add(lblLevel);
 
         leftContainer.Add(imgPortrait);
+
+        var ttElements = new List<VisualElement>()
+        {
+            new Image()
+            {
+                sprite = worker.Portrait,
+            },
+            new Label()
+            {
+                text = $"" +
+                $"{worker.Name}\n" +
+                $"Traits: {string.Join(", ", worker.Traits.Select(t=>t.TraitName))}\n" +
+                $"Tasks completed: {worker.TasksCompleted}\n"
+            }
+        };
+        Tooltip.RegisterTooltip(Root, imgPortrait, ttElements);
 
 
         Button btnFire = new Button()

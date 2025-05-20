@@ -1,4 +1,4 @@
 <engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
-    <engine:VisualElement name="tooltip" class="vertical-container window" style="flex-grow: 0; align-content: auto; align-items: stretch; justify-content: flex-start; width: auto; height: auto; flex-shrink: 0; position: absolute; top: 0; left: 0;" />
+    <engine:VisualElement name="tooltip" class="vertical-container window" style="flex-grow: 0; align-content: auto; align-items: stretch; justify-content: flex-start; width: auto; height: auto; flex-shrink: 0; position: absolute; top: 0; left: 0; padding-top: 16px; padding-right: 16px; padding-bottom: 16px; padding-left: 16px;" />
 </engine:UXML>
