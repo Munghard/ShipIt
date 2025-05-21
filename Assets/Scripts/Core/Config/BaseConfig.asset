@@ -20,6 +20,8 @@ MonoBehaviour:
     Skill: 1
     Specialty: General
     PortraitIndex: 133
+    Traits:
+    - Fast learner
   RolledWorkersAmount: 3
   RolledProjectsAmount: 3
   RolledBuyablesAmount: 3

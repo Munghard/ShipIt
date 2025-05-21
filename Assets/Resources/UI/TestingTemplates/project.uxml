@@ -1,6 +1,6 @@
 <engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
-    <engine:VisualElement name="window" class="vertical-container" style="flex-grow: 0; align-content: auto; align-items: stretch; justify-content: flex-start; width: 600px; height: auto; flex-shrink: 0; position: absolute; top: 0; left: 0;">
+    <engine:VisualElement name="window" class="vertical-container" style="flex-grow: 0; align-content: auto; align-items: stretch; justify-content: flex-start; width: 600px; height: auto; flex-shrink: 0; position: absolute; top: 0; left: 0; margin-top: 16px; margin-right: 16px; margin-bottom: 16px; margin-left: 16px;">
         <engine:VisualElement name="header" class="header-default" style="flex-grow: 1; flex-direction: row; top: 0; left: 0; right: 0; position: relative; justify-content: space-between; max-height: 60px;">
             <engine:Label text="project1" name="lblHeader" style="margin-left: 30px; flex-grow: 1; flex-direction: row; margin-right: 10px;" />
             <engine:Button text="-" name="btnMin" style="width: 32px; height: 32px; margin-top: auto; margin-bottom: auto; margin-right: 10px;" />

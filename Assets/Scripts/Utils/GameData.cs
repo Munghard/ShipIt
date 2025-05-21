@@ -34,7 +34,7 @@ namespace Assets.Scripts.Utils
         public float Happiness;
         public float Stress;
         public float Xp;
-        public Location Location;
+        public int Location;
         public List<string> Traits;
         public WorkerData() { }
 

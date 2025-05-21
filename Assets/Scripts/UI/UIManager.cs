@@ -1,7 +1,7 @@
 using Assets.Scripts.Core.Config;
+using Assets.Scripts.Core.Enums;
 using Assets.Scripts.Data;
 using Assets.Scripts.Models;
-using Assets.Scripts.UI;
 using Assets.Scripts.UI.HUD;
 using Assets.Scripts.UI.Tooltip;
 using Assets.Scripts.UI.Window;
@@ -64,6 +64,8 @@ public class UIManager : MonoBehaviour
         shopContent = Root.Q<VisualElement>("shopContent");
         messagebox = Root.Q<VisualElement>("msgBoxScrollView");
         gameButtons = Root.Q<VisualElement>("gameButtons");
+
+        Application.runInBackground = true; // should keep running on phones
     }
 
     void Start()
@@ -181,8 +183,8 @@ public class UIManager : MonoBehaviour
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
                     id: loadedWorker.Id,
-                    location: loadedWorker.Location,
-                    traits: new List<Trait>(loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)))
+                    location: (Location)loadedWorker.Location,
+                    traits: loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)).ToList()
                 ));
 
             }
@@ -200,8 +202,8 @@ public class UIManager : MonoBehaviour
                     level: loadedWorker.Level,
                     xp: loadedWorker.Xp,
                     id: loadedWorker.Id,
-                    location: loadedWorker.Location,
-                    traits: new List<Trait>(loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)))
+                    location: (Location)loadedWorker.Location,
+                    traits: loadedWorker.Traits.Select(t => Game.TraitManager.GetTrait(t)).ToList()
                 ));
             }
             Game.OnAvailableWorkersChanged?.Invoke(Game.WorkersForHire);
@@ -365,7 +367,7 @@ public class UIManager : MonoBehaviour
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
-                Location = worker.Location,
+                Location = (int)worker.Location,
                 Traits = worker.Traits.Select(t => t.TraitName).ToList()
             });
         }
@@ -383,7 +385,7 @@ public class UIManager : MonoBehaviour
                 PortraitIndex = Game.workerGenerator.GetPortraitIndex(worker.Portrait),
                 Specialty = worker.Specialty.Name,
                 Xp = worker.Xp,
-                Location = worker.Location,
+                Location = (int)worker.Location,
                 Traits = worker.Traits.Select(t => t.TraitName).ToList()
             });
         }
@@ -1005,7 +1007,7 @@ public class UIManager : MonoBehaviour
         void UpdateWorkerContainer(string status)
         {
             //bool show = task.CanStart; // override can start
-            bool show = task.Status != "completed" && task.Status != "failed" && Game.BusinessOpen; // override can start
+            bool show = task.Status != "completed" && task.Status != "failed"; // override can start
 
             workersContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             workersLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1185,10 +1187,49 @@ public class UIManager : MonoBehaviour
         lblLevel.style.right = 0;
         lblLevel.style.position = Position.Absolute;
         lblLevel.style.color = Color.cyan;
-        lblLevel.style.backgroundColor = new Color(0.2f,0.2f,0.2f);
         lblLevel.tooltip = "Level:" + worker.Level.ToString();
 
         lblLevel.AddToClassList("info-label");
+
+
+        // Create container for the icon
+        VisualElement iconContainer = new VisualElement();
+        iconContainer.style.position = Position.Absolute;
+        iconContainer.style.bottom = 0;
+        iconContainer.style.left = 0;
+        iconContainer.style.marginBottom = 4;
+        iconContainer.style.marginLeft = 4;
+        iconContainer.style.marginRight = 4;
+        iconContainer.style.marginTop = 4;
+        iconContainer.AddToClassList("info-label");
+
+        // Create initial icon and add it
+        VisualElement locationIcon = CreateFAIcon(
+            worker.Location == Location.WORK ? "briefcase" :
+            worker.Location == Location.HOME ? "house" :
+            worker.Location == Location.HOSPITAL ? "hospital" : "",
+            24, 24
+        );
+        var color = LocationExtensions.GetColor(worker.Location);
+        locationIcon.style.unityBackgroundImageTintColor = color;
+        
+        iconContainer.Add(locationIcon);
+
+        // Update icon on location change
+        worker.OnLocationChanged += (location) =>
+        {
+            iconContainer.Clear(); // remove old icon
+            var newIcon = CreateFAIcon(
+                location == Location.WORK ? "briefcase" :
+                location == Location.HOME ? "house" :
+                location == Location.HOSPITAL ? "hospital" : "",
+                24, 24
+            );
+            var color = LocationExtensions.GetColor(location);
+            
+            newIcon.style.unityBackgroundImageTintColor = color;
+            iconContainer.Add(newIcon);
+        };
 
 
         elements.Add(mainContainer);
@@ -1209,24 +1250,34 @@ public class UIManager : MonoBehaviour
         imgPortrait.Add(btnInfo);
         imgPortrait.Add(lblSpecialty);
         imgPortrait.Add(lblLevel);
+        imgPortrait.Add(iconContainer);
 
         leftContainer.Add(imgPortrait);
 
-        var ttElements = new List<VisualElement>()
+        Tooltip.RegisterTooltip(Root, imgPortrait, () => new List<VisualElement>()
         {
-            new Image()
+            new Image { sprite = worker.Portrait },
+            new Label
             {
-                sprite = worker.Portrait,
-            },
-            new Label()
-            {
-                text = $"" +
-                $"{worker.Name}\n" +
-                $"Traits: {string.Join(", ", worker.Traits.Select(t=>t.TraitName))}\n" +
-                $"Tasks completed: {worker.TasksCompleted}\n"
+                text =
+                    $"{worker.Name}\n" +
+                    $"Traits: {string.Join(", ", worker.Traits?.Select(t => t.TraitName) ?? new[] { "None" })}\n" +
+                    $"Location: {worker.Location}\n" +
+                    $"Health: {worker.Health:F1}/{worker.MaxHealth}\n" +
+                    $"Stress: {worker.Stress:F1}/{worker.MaxStress}\n" +
+                    $"Efficiency: {worker.Efficiency:F1}/{100}\n" +
+                    $"Happiness: {worker.Happiness:F1}/{worker.MaxHappiness}\n" +
+                    $"Location: {worker.Location}\n" +
+                    $"Specialty: {worker.Specialty?.Name ?? "None"}\n" +
+                    $"Status: {worker.Status}\n" +
+                    $"Skill: {worker.Skill}\n" +
+                    $"Level: {worker.Level}\n" +
+                    $"Xp: {worker.Xp:F1}\n" +
+                    $"Next level xp: {worker.NextXp:F1}\n" +
+                    $"Tasks completed: {worker.TasksCompleted}\n" +
+                    $"Current task: {worker.Task?.Name ?? "None"}\n"
             }
-        };
-        Tooltip.RegisterTooltip(Root, imgPortrait, ttElements);
+        });
 
 
         Button btnFire = new Button()
@@ -1365,7 +1416,7 @@ public class UIManager : MonoBehaviour
             leftContainer.Add(haBar);
         }
 
-        var window = new WindowUI(worker.Name, elements, new Vector2(0, 0),null /*CreateFAIcon("user", 32, 32)*/,false,true,false);
+        var window = new WindowUI(worker.Name, elements, new Vector2(0, 0),null/*CreateFAIcon("briefcase", 32, 32)*/,false,true,false);
 
         worker.OnStressChanged += (stress) => {
         if (stress >= 100)

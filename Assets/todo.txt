@@ -63,3 +63,6 @@ buyable: bigger office> one tiem purchase increases max team size.
  instead of skipping time set timescale very large and pass time organically for events and time based shiet DONE
 
  tooltip unfinished, needs some way of adding it and triggering it on visualelements DONE
+
+
+ LOCATION ISNT SAVING OR LOADING CORRECTLY

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
 
@@ -135,4 +136,5 @@ public class WorkerInfo
     public int Skill;
     public string Specialty;
     public int PortraitIndex;
+    public List<string> Traits;
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,6 +10,9 @@ namespace Assets.Scripts.UI.Window
     {
         public Coroutine CurrentAlertCoroutine;
         public System.Action<string> OnHeaderChanged;
+
+        private VisualElement _iconElement;           // the icon element that was added to the header
+
         public WindowUI(string headerText, List<VisualElement> elements, Vector2 position, VisualElement icon = null, bool draggable = true,bool renameable= false, bool canMinimize = true)
         {
 
@@ -34,17 +38,18 @@ namespace Assets.Scripts.UI.Window
             lblHeader.text = headerText; // Set the header text
 
 
-        
-
             // icon
             var header = this.Q<VisualElement>("header");
-            if(icon != null)
+
+            _iconElement = icon;
+
+            if(_iconElement != null)
             {
-                icon.style.marginBottom = 8;
-                icon.style.marginLeft = 8;
-                icon.style.marginRight = 8;
-                icon.style.marginTop = 8;
-                header.Insert(0,icon);
+                _iconElement.style.marginBottom = 8;
+                _iconElement.style.marginLeft = 8;
+                _iconElement.style.marginRight = 8;
+                _iconElement.style.marginTop = 8;
+                header.Insert(0, _iconElement);
             }
 
             if (renameable)
@@ -110,6 +115,15 @@ namespace Assets.Scripts.UI.Window
             if (draggable) Draggable.MakeDraggable(this);
         }
 
+        public void SetIcon(VisualElement newIcon)
+        {
+            var header = this.Q<VisualElement>("header");
+            if (_iconElement != null)
+            {
+                header.Remove(_iconElement);
+            }
+            _iconElement = newIcon;
+            header.Insert(0, _iconElement);
+        }
     }
-
 }

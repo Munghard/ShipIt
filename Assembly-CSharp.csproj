@@ -83,6 +83,7 @@
     <Compile Include="Assets\Scripts\UI\Window\WindowUI.cs" />
     <Compile Include="Assets\Scripts\UI\Window\ConfirmationWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\WorkerGenerator.cs" />
+    <Compile Include="Assets\Scripts\Core\Extensions\LocationExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\PortraitData.cs" />
     <Compile Include="Assets\Scripts\Core\Traits\TraitType.cs" />
     <Compile Include="Assets\Scripts\UI\Window\PauseWindow.cs" />

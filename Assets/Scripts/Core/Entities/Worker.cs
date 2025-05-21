@@ -76,8 +76,8 @@ public class Worker
         NextXp = Game.GameConfig.EvalWorkerXpCurve(Level);
         Status = "idle";
         HiringCost = Game.GameConfig.GetHiringCost(Level);
-        location = location??= Location.WORK;
-        traits = traits ?? new List<Trait>();
+        Location = location??= Location.WORK;
+        Traits = traits ?? new List<Trait>();
     }
 
     private long GenerateId()
@@ -88,6 +88,7 @@ public class Worker
     {
         Location = location;
         OnLocationChanged?.Invoke(location);
+        Debug.Log($"Setting {Name} location to: {location}");
     }
     public Vector2 GetWindowCenter()
     {
@@ -139,7 +140,7 @@ public class Worker
         }
         OnXpChanged?.Invoke(Xp);
     }
-
+    
     private void LevelUp()
     {
         Skill += 1;

@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 using Assets.Scripts.UI.Window;
 using System.Collections;
 using System.Xml.Linq;
+using Assets.Scripts.Core.Enums;
 public class Game
 {
     public float SimulationTime { get; set; } = 1800;
@@ -88,6 +89,8 @@ public class Game
         BusinessHours = GameConfig.BusinessHours;
 
         ScaledDeltaTime = Time.deltaTime * TimeScale;
+
+        OnBusinessOpenChanged +=(value)=> UpdateWorkersLocation(value?Location.WORK:Location.HOME);
     }
     public void NewGame()
     {
@@ -109,8 +112,10 @@ public class Game
         RollProjects(GameConfig.RolledProjectsAmount);
         RollBuyables(GameConfig.RolledBuyablesAmount);
 
-        var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100); 
-        var worker = new Worker(GameConfig.StartingWorker.Name,workerGenerator.GetPortrait(GameConfig.StartingWorker.PortraitIndex), Specialty.Get(GameConfig.StartingWorker.Specialty), GameConfig.StartingWorker.Skill ,GameConfig.StartingWorker.Level, project, this);
+        var project = new Project(this, "First project", "Your entry into the working world.", 1, 1000, 100);
+        
+        var _traits = GameConfig.StartingWorker.Traits.Select(t => TraitManager.GetTrait(t)).ToList(); 
+        var worker = new Worker(GameConfig.StartingWorker.Name, workerGenerator.GetPortrait(GameConfig.StartingWorker.PortraitIndex), Specialty.Get(GameConfig.StartingWorker.Specialty), GameConfig.StartingWorker.Skill, GameConfig.StartingWorker.Level, null, this, traits: _traits);
         AddWorker(worker);
         AddProject(project);
 
@@ -130,22 +135,23 @@ public class Game
     {
         if (isOpen)
         {
-            foreach (var worker in Workers)
-            {
-                worker.SetWorkerLocation(Assets.Scripts.Core.Enums.Location.WORK); // check traits, ie druggies might not come in at all and alcoholics might be late
-            }
             AudioManager.Play("DoorBell");
-            Debug.Log("Business is now OPEN");
             OnBusinessOpenChanged?.Invoke(true);
+            Debug.Log("Business is now OPEN");
         }
         else
         {
-            foreach (var worker in Workers) {
-                worker.SetWorkerLocation(Assets.Scripts.Core.Enums.Location.HOME); // check traits, workaholics might not leave when closed
-            }
             AudioManager.Play("Bell");
             OnBusinessOpenChanged?.Invoke(false);
             Debug.Log("Business is now CLOSED");
+        }
+    }
+
+    private void UpdateWorkersLocation(Location location) // check traits, workaholics might not leave when closed
+    {
+        foreach (var worker in Workers)
+        {
+            worker.SetWorkerLocation(location); // check traits, ie druggies might not come in at all and alcoholics might be late
         }
     }
 
@@ -282,6 +288,15 @@ public class Game
         TimeScale = Mathf.Clamp(scale, 0.125f, 32f);
         OnTimeScaleChanged?.Invoke(TimeScale);
     }
+    public void SetSimulationTime(float simulationTime)
+    {
+        SimulationTime = simulationTime;
+        _lastBusinessOpen = !IsWorkHours();
+        UpdateBusinessStatus(); // calls workers update location based off of time
+
+        //var timeToPass = simulationTime - SimulationTime;
+        //PassTime(timeToPass);
+    }
     public void PassTime(float timeToPass)
     {
         UIManager.StartCoroutine(PassTimeCR(timeToPass));
@@ -299,9 +314,9 @@ public class Game
     }
     IEnumerator PassTimeCR (float timeToPass){
         // should prbably disable input or something we'll see
-        TimeScale = 400f;
+        TimeScale = timeToPass;
         OnTimeScaleChanged?.Invoke(TimeScale);
-        float targetTime = SimulationTime + timeToPass;
+        float targetTime = SimulationTime + timeToPass - 1;
 
         while (SimulationTime < targetTime)
         {
@@ -386,7 +401,7 @@ public class Game
     // timer stuff
     private float repTimer = 0f;
     private float businessCheckTimer = 0f;
-    private float businessCheckInterval = 60f; // Check every n second
+    private float businessCheckInterval = 1f; // Check every n second
     public void UpdateGame()
     {
         // INPUT
@@ -432,9 +447,5 @@ public class Game
             worker.UpdateWorker(SimulationTime);
     }
 
-    internal void SetSimulationTime(float simulationTime)
-    {
-        SimulationTime = simulationTime;
-        UpdateBusinessStatus();
-    }
+
 }

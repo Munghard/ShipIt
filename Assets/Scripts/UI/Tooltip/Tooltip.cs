@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -8,7 +9,7 @@ namespace Assets.Scripts.UI.Tooltip
     {
         private static Tooltip _activeTooltip;
 
-        public static void RegisterTooltip(VisualElement root, VisualElement parent, List<VisualElement> visualElements)
+        public static void RegisterTooltip(VisualElement root, VisualElement parent, Func<List<VisualElement>> generateContent)
         {
             parent.RegisterCallback<MouseEnterEvent>(evt =>
             {
@@ -18,6 +19,7 @@ namespace Assets.Scripts.UI.Tooltip
                     Debug.Log("Deleting previous tooltip");
                 }
 
+                var visualElements = generateContent();
                 _activeTooltip = new Tooltip();
                 _activeTooltip.Create(root, parent, visualElements);
             });
