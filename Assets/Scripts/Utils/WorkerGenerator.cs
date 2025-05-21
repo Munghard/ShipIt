@@ -34,12 +34,16 @@ public class WorkerGenerator
 
     public void Load()
     {
-        AllSprites = Resources.LoadAll<Sprite>("textures/Portraits").ToList();
+        AllSprites = Resources.LoadAll<Sprite>("textures/Portraits2").ToList();
         Sprites.AddRange(AllSprites); 
         Debug.Log("Portraits loaded: " + AllSprites.Count);
     }
     public Sprite GetPortrait(int index)
     {
+        if(AllSprites.Count < index)
+        {
+            return AllSprites[0];
+        }
         return AllSprites[index];
     }
     public Sprite GetRandomPortrait()

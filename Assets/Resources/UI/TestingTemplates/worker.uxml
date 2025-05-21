@@ -8,7 +8,7 @@
         <engine:VisualElement name="content" style="flex-grow: 1;">
             <engine:VisualElement style="flex-grow: 1; flex-direction: row;">
                 <engine:VisualElement style="flex-grow: 1;">
-                    <engine:VisualElement style="flex-grow: 0; background-image: resource(&apos;textures/Portraits&apos;); background-size: 150px 150px; flex-shrink: 0; background-color: rgba(0, 0, 0, 0); width: 150px; height: 150px;" />
+                    <engine:VisualElement style="flex-grow: 0; background-image: resource(&apos;textures/Portraits2&apos;); background-size: 150px 150px; flex-shrink: 0; background-color: rgba(0, 0, 0, 0); width: 150px; height: 150px;" />
                     <engine:ProgressBar value="22" title="my-progress" />
                     <engine:ProgressBar value="22" title="my-progress" />
                     <engine:ProgressBar value="22" title="my-progress" />

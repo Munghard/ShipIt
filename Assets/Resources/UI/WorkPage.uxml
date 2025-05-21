@@ -7,6 +7,17 @@
         <engine:VisualElement name="bg" class="tile-background" style="flex-grow: 1; flex-direction: column; padding-top: 32px; padding-right: 32px; padding-bottom: 32px; padding-left: 32px;">
             <engine:Label text="Work" parse-escape-sequences="false" name="pageHeader" class="pageHeader" style="font-size: 40px; -unity-font-style: bold; margin: 0; border-width: 20px;" />
             <engine:VisualElement style="flex-direction: row; flex-grow: 1; flex-shrink: 1;">
+                <engine:VisualElement style="flex-grow: 1; max-width: 20%; align-items: stretch;">
+                    <engine:Label text="Employees" style="font-size: 30px; -unity-text-align: upper-center;" />
+                    <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
+                        <engine:VisualElement name="workersContent" class="content" style="align-items: center; justify-content: flex-start; align-content: flex-start; flex-grow: 1; flex-shrink: 1; height: auto;">
+                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
+                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
+                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
+                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
+                        </engine:VisualElement>
+                    </engine:ScrollView>
+                </engine:VisualElement>
                 <engine:VisualElement style="flex-grow: 1;">
                     <engine:Label text="Projects" style="font-size: 30px; -unity-text-align: upper-center;" />
                     <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
@@ -24,17 +35,6 @@
                             <engine:Instance template="task" style="flex-shrink: 0; height: 449px; width: 592px;" />
                             <engine:Instance template="task" style="flex-shrink: 0; height: 449px; width: 592px;" />
                             <engine:Instance template="task" style="flex-shrink: 0; height: 449px; width: 592px;" />
-                        </engine:VisualElement>
-                    </engine:ScrollView>
-                </engine:VisualElement>
-                <engine:VisualElement style="flex-grow: 1; max-width: 20%; align-items: stretch;">
-                    <engine:Label text="Employees" style="font-size: 30px; -unity-text-align: upper-center;" />
-                    <engine:ScrollView style="flex-grow: 1; flex-shrink: 1; flex-direction: column;">
-                        <engine:VisualElement name="workersContent" class="content" style="align-items: center; justify-content: flex-start; align-content: flex-start; flex-grow: 1; flex-shrink: 1; height: auto;">
-                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
-                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
-                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
-                            <engine:Instance template="worker" style="flex-shrink: 0; height: 378px; width: 330px;" />
                         </engine:VisualElement>
                     </engine:ScrollView>
                 </engine:VisualElement>

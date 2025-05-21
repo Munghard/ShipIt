@@ -360,8 +360,13 @@ public class Game
     {
         foreach (var task in project.Tasks.ToList())
         {
+            foreach (var worker in task.Workers)
+            {
+                task.RemoveWorker(worker); // remove all workers
+            }
             project.RemoveTask(task);
         }
+        
         Projects.Remove(project);
         OnProjectsChanged.Invoke(Projects);
     }

@@ -19,7 +19,7 @@ MonoBehaviour:
     Level: 1
     Skill: 1
     Specialty: General
-    PortraitIndex: 133
+    PortraitIndex: 24
     Traits:
     - Fast learner
   RolledWorkersAmount: 3

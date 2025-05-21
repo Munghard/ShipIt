@@ -1075,8 +1075,8 @@ public class UIManager : MonoBehaviour
             {
                 style =
                 {
-                    width = 50,
-                    height = 50,
+                    width = 128,
+                    height = 128,
                     paddingLeft = 0,
                     paddingRight = 0,
                     paddingTop = 0,
@@ -1091,8 +1091,8 @@ public class UIManager : MonoBehaviour
                 style = 
                     {
                         flexGrow = 1,
-                        width = 50,
-                        height = 50,
+                        width = 124,
+                        height = 124,
                     }
             };
             
