@@ -1,12 +1,7 @@
-﻿using System;
+﻿using Assets.Scripts.Core;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
-using Assets.Scripts.Utils;
-using Unity.VisualScripting;
+
 
 namespace Assets.Scripts.UI.Window
 {

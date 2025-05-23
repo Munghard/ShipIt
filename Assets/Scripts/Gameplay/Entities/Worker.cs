@@ -40,6 +40,7 @@ public class Worker
 
     public System.Action<float> OnHealthChanged;
     public System.Action<float> OnStressChanged;
+    public System.Action<float> onSressBonusMpChanged;
     public System.Action<float> OnHappinessChanged;
     public System.Action<float> OnEfficiencyChanged;
     public System.Action<float> OnXpChanged;
@@ -58,6 +59,7 @@ public class Worker
     public float baseLearnSpeed = 1f;
     public float baseHealSpeed = 1f;
 
+    public float stressIncreaseBonusMultiplier = 1f;
     public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null, Location? location = null,List<Trait> traits = null)
     {
         Id = id ?? GenerateId();
@@ -78,6 +80,30 @@ public class Worker
         HiringCost = Game.GameConfig.GetHiringCost(Level);
         Location = location??= Location.WORK;
         Traits = traits ?? new List<Trait>();
+        game.OnNewDay += NewDay;
+    }
+    ~Worker()
+    {
+        Game.OnNewDay -= NewDay;
+    }
+    private void NewDay(int day)
+    {
+        Debug.Log($"New day for {Name}");
+        CheckReleaseFromHospital();
+    }
+
+    private void CheckReleaseFromHospital()
+    {
+        if (Location == Location.HOSPITAL && Health == MaxHealth)
+        {
+            SetWorkerLocation(Location.HOME);
+            ConfirmationWindow.Create(
+                Game.UIManager.Root,
+                () => Game.Paused = false,
+                Message: $"{Name} has recovered and is now at home.\n" +
+                $"Health: {Health}/{MaxHealth}"
+            );
+        }
     }
 
     private long GenerateId()
@@ -111,7 +137,7 @@ public class Worker
         Game.OnWorkerAssigned?.Invoke(this);
     }
 
-    public void RemoveFromTask()
+    public void RemoveFromTask() // dont use this, use task.removeworker for sync
     {
         Task = null;
         SetStatus("idle");
@@ -243,9 +269,12 @@ public class Worker
     }
     private void GoToHospital()
     {
+        Task.RemoveWorker(this); // remove from task
+        //RemoveFromTask();
         var hospitalBill = Random.Range(100, 1000); // roll bill
 
         SetWorkerLocation(Location.HOSPITAL);
+        Game.Paused = true;
         ConfirmationWindow.Create(
             Game.UIManager.Root,
             () =>
@@ -259,6 +288,7 @@ public class Worker
             },
             () =>
             {
+                Game.Paused = false;
                 var deathRoll = Random.value;
                 if(deathRoll < Game.GameConfig.DeathChance)
                 {
@@ -266,7 +296,8 @@ public class Worker
                 }
             },
             Message: $"{Name} has collapsed from stress and was taken to a hospital.\n" +
-            $"Pay the hospital bill or {Name} might die.\n",
+            $"Pay the hospital bill or {Name} might die.\n" +
+            $"Total:{hospitalBill}$",
             canConfirm:Game.HasMoney(hospitalBill)
         );
 
@@ -283,6 +314,15 @@ public class Worker
         Portrait = Game.workerGenerator.GetPortrait(98);
         Game.OnWorkerDied?.Invoke(this);
         Game.OnWorkersChanged?.Invoke(Game.Workers);
+        ConfirmationWindow.Create(
+            Game.UIManager.Root,
+            () =>
+            {
+                Game.Paused = false;
+                //Game.RemoveWorker(this);
+            },
+            Message: $"R.I.P. \n{Name} has died in the hospital.\n"
+        );
     }
 
     internal void IncreaseSkill(int amount)
@@ -322,7 +362,7 @@ public class Worker
             float effectiveSkill = Mathf.Max(Skill / 2f, 1f); // Prevent division by <1
             float specialtyStressModifier = Task.Specialty.Name == Specialty.Name ? 1f : Task.Difficulty * 2f;
 
-            float stressIncrease = (Task.Difficulty / effectiveSkill) * deltaTime * Game.GameConfig.StressIncreaseMultiplier * specialtyStressModifier;
+            float stressIncrease = (Task.Difficulty / effectiveSkill) * deltaTime * Game.GameConfig.StressIncreaseMultiplier * specialtyStressModifier * stressIncreaseBonusMultiplier;
 
             IncreaseStress(stressIncrease);
             DecreaseEfficiency();
@@ -343,7 +383,6 @@ public class Worker
             IncreaseHappiness(deltaTime * Game.GameConfig.HappinessGainMultiplier);
         }
 
-
         if (Happiness <= 0)
         {
             RemoveFromTask();
@@ -353,12 +392,16 @@ public class Worker
         }
         
 
-        if (Stress <= 0 && Health < MaxHealth)
+        if (Location != Location.WORK && Health < MaxHealth)
         {
-            IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier * baseHealSpeed); // regenerate health
+            IncreaseHealth(deltaTime / Game.GameConfig.HealthGainMultiplier * baseHealSpeed * (Location == Location.HOSPITAL? Game.GameConfig.HospitalHealMultiplier: Game.GameConfig.HomeHealMultiplier)); // regenerate health, slower in hospital
         }
 
     }
 
-
+    public void SetStressIncreaseBonusMultiplier(float multiplier)
+    {
+        stressIncreaseBonusMultiplier = multiplier;
+        onSressBonusMpChanged?.Invoke(stressIncreaseBonusMultiplier);
+    }
 }

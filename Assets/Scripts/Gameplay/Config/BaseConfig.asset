@@ -111,5 +111,7 @@ MonoBehaviour:
   HealthLossMultiplier: 1
   HealthGainMultiplier: 0.1
   DeathChance: 0.1
-  HappinessGainMultiplier: 0.25
-  HappinessLossMultiplier: 0.5
+  HomeHealMultiplier: 0.1
+  HospitalHealMultiplier: 0.01
+  HappinessGainMultiplier: 0.15
+  HappinessLossMultiplier: 0.25

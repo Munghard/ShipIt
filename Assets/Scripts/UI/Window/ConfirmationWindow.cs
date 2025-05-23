@@ -33,6 +33,17 @@ namespace Assets.Scripts.UI.Window
                 NoCallback?.Invoke();
                 DestroyWindow();
             }) { text = "No" };
+            yesButton.focusable = true;
+            noButton.focusable = true;
+
+            if (yesButton.enabledSelf)
+            {
+                yesButton.schedule.Execute(() => yesButton.Focus()).ExecuteLater(1);
+            }
+            else
+            {
+                noButton.schedule.Execute(() => noButton.Focus()).ExecuteLater(1);
+            }
 
             var buttonContainer = new VisualElement();
             buttonContainer.Add(yesButton);

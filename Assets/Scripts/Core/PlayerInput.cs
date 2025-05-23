@@ -1,17 +1,22 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
-namespace Assets.Scripts.Utils
+namespace Assets.Scripts.Core
 {
     internal class PlayerInput
     {
-
         Game game;
+
         public PlayerInput(Game _game)
         {
             game = _game;
         }
-        public void UpdateInput() {
-            if (Input.GetKeyDown(KeyCode.Space))
+
+        public void UpdateInput()
+        {
+
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 game.TogglePaused();
             }
@@ -19,11 +24,15 @@ namespace Assets.Scripts.Utils
             {
                 game.HalveTimeScale();
             }
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                game.SetTimeScale(32);
+            }
             if (Input.GetKeyDown(KeyCode.D))
             {
                 game.DoubleTimeScale();
             }
-            if (Input.GetKeyDown(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.S))
             {
                 game.SetTimeScale(1);
             }

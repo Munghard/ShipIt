@@ -54,6 +54,7 @@ public class Task
 
     public void AssignWorker(Worker worker)
     {
+
         if (!Workers.Contains(worker))
         {
             Workers.Add(worker);

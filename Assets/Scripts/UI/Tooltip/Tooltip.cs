@@ -54,7 +54,9 @@ namespace Assets.Scripts.UI.Tooltip
             }
 
             _Root.Add(this);
-            
+
+            this.pickingMode = PickingMode.Ignore;
+
 
             Vector2 worldPos = parent.worldBound.position;
             float width = parent.worldBound.width;
@@ -63,8 +65,8 @@ namespace Assets.Scripts.UI.Tooltip
             Vector2 localPos = this.parent.WorldToLocal(worldPos);
 
             this.style.position = Position.Absolute;
-            this.style.left = localPos.x + width + 10f;
-            this.style.top = localPos.y + 10f;
+            this.style.left = localPos.x + width /*+ 10f*/;
+            this.style.top = localPos.y /*+ 10f*/;
           
 
 

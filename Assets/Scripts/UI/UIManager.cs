@@ -1,6 +1,7 @@
 using Assets.Scripts.Core.Config;
 using Assets.Scripts.Core.Enums;
 using Assets.Scripts.Data;
+using Assets.Scripts.Gameplay.MiniGames;
 using Assets.Scripts.Models;
 using Assets.Scripts.UI.HUD;
 using Assets.Scripts.UI.Tooltip;
@@ -111,7 +112,31 @@ public class UIManager : MonoBehaviour
         gameButtons.Add(btnNewGame);
         gameButtons.Add(btnLoad);
         gameButtons.Add(btnSave);
+
+        var btnMinigame = new Button() { text = "minigame" };
+        btnMinigame.clicked += () =>
+        {
+            float? miniGameResult = null;
+            CreateMiniGame((result)=> { miniGameResult = result; });
+        };
+        gameButtons.Add(btnMinigame);
     }
+
+    public void CreateMiniGame(Action<float?> onComplete)
+    {
+        TimingMiniGame timingMiniGame = new TimingMiniGame();
+        var minigame = timingMiniGame.Create(this, Game, 2, (result) =>
+        {
+            Game.textPop.New($"Minigame result: {result:F1}", Vector2.zero, Color.cyan);
+            timingMiniGame = null;
+            onComplete(result);
+        }, () =>
+        {
+            timingMiniGame = null;
+            onComplete(null);
+        });
+    }
+
     void ClearContainers()
     {
         //Root
@@ -450,7 +475,7 @@ public class UIManager : MonoBehaviour
         Game.textPop.New("Game saved!", Vector2.zero, Color.magenta);
     }
 
-    public static VisualElement CreateFAIcon(string name,int width = 32,int height = 32)
+    public static VisualElement CreateFAIcon(string name,int width = 32,int height = 32) // TODO move to core
     {
         VisualElement icon = new();
 
@@ -1066,65 +1091,73 @@ public class UIManager : MonoBehaviour
 
     }
 
-    private static void UpdateTaskWorkers(Task task, VisualElement workersContainer, List<Worker> workers)
+    private void UpdateTaskWorkers(Task task, VisualElement workersContainer, List<Worker> workers)
     {
         workersContainer.Clear();
         foreach (Worker worker in workers.Where(w=>w.CanWork()))
         {
-            Button assignButton = new Button
+            var containerElement = new VisualElement();
+            var visualTree = Resources.Load<VisualTreeAsset>("UI/AssignButton");
+            if (visualTree != null)
             {
-                style =
-                {
-                    width = 128,
-                    height = 128,
-                    paddingLeft = 0,
-                    paddingRight = 0,
-                    paddingTop = 0,
-                    paddingBottom = 0,
-                }
-            };
+                visualTree.CloneTree(containerElement);  // Clone the UXML content into this VisualElement
+            }
+            else
+            {
+                Debug.LogError("UXML file not found!");
+            }
 
-            Image portrait = new Image
-            {
-                sprite = worker.Portrait,
-                scaleMode = ScaleMode.ScaleToFit,
-                style = 
-                    {
-                        flexGrow = 1,
-                        width = 124,
-                        height = 124,
-                    }
-            };
+            var portrait = containerElement.Q<VisualElement>("portrait");
+            var container = containerElement.Q<VisualElement>("container");
+            var assignButton = containerElement.Q<Button>("btn");
+            var lblResult = containerElement.Q<Label>("lblResult");
+
+
+            portrait.style.backgroundImage = new StyleBackground(worker.Portrait);
             
-            assignButton.Add(portrait);
 
             if(worker.Task == null)
             {
                 if (worker.Specialty.Name == task.Specialty.Name ||worker.Specialty.Name == "General")
                 {
-                    assignButton.AddToClassList("assign-worker");
+                    container.AddToClassList("assign-worker");
                 }
                 else
                 {
-                    assignButton.AddToClassList("assign-worker-untrained");
+                    container.AddToClassList("assign-worker-untrained");
                 }
                 assignButton.clicked += () =>
                 {
-                    task.AssignWorker(worker);
+                    CreateMiniGame((result) =>
+                    {
+                        float multiplier = result ?? 1f;
+                        worker.SetStressIncreaseBonusMultiplier(multiplier);
+                        worker.onSressBonusMpChanged += (val) =>
+                        {
+                            lblResult.text = $"{val:F1}x";
+                        };
+
+                        if (result.HasValue)
+                        {
+                            task.AssignWorker(worker);
+                            Game.textPop.New($"Stress bonus multiplier {multiplier:F1}", Vector2.zero, Color.green);
+                        }
+                    });
                 };
 
-                workersContainer.Add(assignButton);
+                workersContainer.Add(containerElement);
 
             }
             else if(worker.Task == task)
             {
-                assignButton.AddToClassList("un-assign-worker");
+                lblResult.text = $"{worker.stressIncreaseBonusMultiplier:F1}x";
+                container.AddToClassList("un-assign-worker");
                 assignButton.clicked += () =>
                 {
                     task.RemoveWorker(worker);
                 };
 
-                workersContainer.Add(assignButton);
+                workersContainer.Add(containerElement);
             }
             else
             {
@@ -1265,6 +1298,7 @@ public class UIManager : MonoBehaviour
                     $"Location: {worker.Location}\n" +
                     $"Health: {worker.Health:F1}/{worker.MaxHealth}\n" +
                     $"Stress: {worker.Stress:F1}/{worker.MaxStress}\n" +
+                    $"Stress bonus mp: {worker.stressIncreaseBonusMultiplier:F1}x\n" +
                     $"Efficiency: {worker.Efficiency:F1}/{100}\n" +
                     $"Happiness: {worker.Happiness:F1}/{worker.MaxHappiness}\n" +
                     $"Location: {worker.Location}\n" +

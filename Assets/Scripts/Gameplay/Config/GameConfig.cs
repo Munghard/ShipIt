@@ -120,12 +120,15 @@ public class GameConfig : ScriptableObject
 
     public float DeathChance;
 
+    public float HomeHealMultiplier;
+    public float HospitalHealMultiplier;
+
     [Header("Happiness")]
 
     public float HappinessGainMultiplier;
     public float HappinessLossMultiplier;
 
-    
+
 }
 [System.Serializable]
 public class WorkerInfo

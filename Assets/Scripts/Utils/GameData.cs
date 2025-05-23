@@ -8,6 +8,7 @@ namespace Assets.Scripts.Utils
     public class GameData
     {
         public float SimulationTime;
+        public int SimulationDay;
         public int Money;
         public int Reputation;
 

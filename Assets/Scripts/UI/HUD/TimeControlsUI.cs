@@ -6,9 +6,7 @@ namespace Assets.Scripts.UI.HUD
 {
     public class TimeControlsUI
     {
-        public Label businessOpenLabel;
-        public Label simulationTimeLabel;
-        public Label timeScaleLabel;
+        public Label businessOpenLabel, dayLabel, simulationTimeLabel, timeScaleLabel;
         private Button btnUp, btnDown, btnPause, btnPassTime, btnPlay, btnPassTimeTillMorning;
 
         private readonly UIManager uiManager;
@@ -41,6 +39,13 @@ namespace Assets.Scripts.UI.HUD
             };
             vTimeContainer.Add(businessOpenLabel);
             
+            dayLabel = new Label($"Day: {game.SimulationDay}")
+            {
+                name = "dayLabel",
+                style = { fontSize = 25 }
+            };
+            vTimeContainer.Add(dayLabel);
+
             simulationTimeLabel = new Label($"Time: {game.SimulationTime}")
             {
                 name = "simulationTimeLabel",
@@ -98,6 +103,9 @@ namespace Assets.Scripts.UI.HUD
             game.OnTimeScaleChanged -= OnTimeScaleChanged;
             game.OnTimeScaleChanged += OnTimeScaleChanged;
 
+            game.OnNewDay -= OnNewDay;
+            game.OnNewDay += OnNewDay;
+
             btnPassTime.clicked -= OnPassTimeClicked;
             btnPassTime.clicked += OnPassTimeClicked;
             
@@ -117,6 +125,11 @@ namespace Assets.Scripts.UI.HUD
 
             btnPlay.clicked -= playAction;
             btnPlay.clicked += playAction;
+        }
+
+        private void OnNewDay(int day)
+        {
+            dayLabel.text = $"Day: {day}";
         }
 
         private void OnPassTimeTillMorningClicked()

@@ -20,27 +20,52 @@
 /*     --blue: rgb(51, 51, 255); */
 /*     --purple: rgb(255, 51, 255); */
 /* } */
-:root {
-    --primary: #66ff66;           /* Soft neon green */
-    --primary-hover: #55cc55;     /* Milder hover green */
-    --secondary: #1a2b1a;         /* Dark moss green */
-    --background: #0d0d0d;        /* Very dark gray */
-    --window: #1a1f1a;            /* Subtle green-tinted dark */
-    --window-bg: #131713;
-    --content: rgba(102, 255, 102, 0.001);
-    --header: #1f2f1f;
-    --header-active: #66ff66;
-    --text: #cceecc;              /* Gentle greenish white */
-    --btntext: #99ff99;           /* Soft button green */
-    --border: #339933;
-    --navbar: #111811;
+/*MATRIX*/
+/*
+:root { 
+    --primary: #66ff66;           
+   --primary-hover: #55cc55;     
+   --secondary: #1a2b1a;         
+   --background: #0d0d0d;        
+   --window: #1a1f1a;            
+   --window-bg: #131713; 
+   --content: rgba(102, 255, 102, 0.001); 
+   --header: #1f2f1f; 
+   --header-active: #66ff66; 
+   --text: #cceecc;              
+   --btntext: #99ff99;           
+   --border: #339933; 
+   --navbar: #111811; 
 
-    --yellow: #cccc33;
-    --green: #66ff66;
-    --red: #cc4444;
-    --blue: #4499cc;
-    --purple: #9966cc;
+   --yellow: #cccc33; 
+   --green: #66ff66; 
+   --red: #cc4444; 
+   --blue: #4499cc; 
+   --purple: #9966cc; 
 }
+*/
+
+:root { 
+     --primary: #cccccc; 
+     --primary-hover: #bbbbbb; 
+     --secondary: #333333; 
+     --background: #1a1a1a; 
+     --window: #2a2a2a; 
+     --window-bg: #1f1f1f; 
+     --content: rgba(52, 52, 52, 0.1);  
+     --header: #3a3a3a; 
+     --header-active: #dddddd; 
+     --text: #e0e0e0; 
+     --btntext: #f0f0f0; 
+     --border: #555555; 
+     --navbar: #1c1c1c; 
+    --yellow: #999966; 
+     --green: #669966; 
+     --red: #996666; 
+     --blue: #668899; 
+     --purple: #887799; 
+ }
+
 
 .light-theme {
     --primary: rgb(79, 163, 217);
@@ -98,13 +123,14 @@ Button:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary);
 }
-
+.unity-tab__header-label {
+    font-size: 40px;
+    font-weigth: 800;
+}
 .unity-tab__header {
     background-color: var(--header);
     color: var(--background);
     height: auto;
-    font-size: 20px;
-    font-weigth: 800;
     border-radius: 10px 10px 0 0;
     border-color: var(--border);
     border-width: 4px 4px 0 4px;

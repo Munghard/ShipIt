@@ -1,7 +1,7 @@
 ﻿
 using UnityEngine;
 
-namespace Assets.Scripts.Utils
+namespace Assets.Scripts.Core
 {
     public static class AudioManager
     {

@@ -7,12 +7,22 @@ using System.Linq;
 using UnityEngine.UIElements;
 using Assets.Scripts.UI.Window;
 using System.Collections;
-using System.Xml.Linq;
 using Assets.Scripts.Core.Enums;
+using Assets.Scripts.Core;
 public class Game
 {
-    public float SimulationTime { get; set; } = 1800;
+    // TIME
+    public float SimulationTime { get; set; } = 360; // in minutes
+    public int SimulationDay { get; set; } = 0;
+    public static readonly int secondsPerDay = 1440;
     public float GetCurrentHour => (SimulationTime / 60f) % 24f;
+    private bool _lastBusinessOpen = true;
+    public Vector2 BusinessHours;
+    public bool BusinessOpen => IsWorkHours();
+    public float TimeScale = 1f;
+    public float ScaledDeltaTime = 1f;
+    public bool Paused = false;
+    // TIME
 
     public List<Project> Projects = new();
     public List<Project> AvailableProjects = new();
@@ -25,17 +35,11 @@ public class Game
     public List<Buyable> acquiredBuyables = new();
 
     
-    private bool _lastBusinessOpen = true;
-    public Vector2 BusinessHours;
-    public bool BusinessOpen => IsWorkHours();
 
     public int Money = 0;
 
     public int Reputation = 0;
 
-    public float TimeScale = 1f;
-    public float ScaledDeltaTime = 1f;
-    public bool Paused = false;
 
     public TextPop textPop;
     public IconManager iconManager;
@@ -58,6 +62,7 @@ public class Game
     public System.Action<int> OnReputationChanged;
 
     public System.Action<float> OnTimeScaleChanged;
+    public System.Action<int> OnNewDay;
 
     public System.Action<List<Project>> OnProjectsChanged;
 
@@ -73,6 +78,7 @@ public class Game
 
     PlayerInput PlayerInput;
     public UIManager UIManager;
+    
     public Game(UIManager uIManager, GameConfig gameConfig)
     {
         GameConfig = gameConfig;
@@ -85,7 +91,11 @@ public class Game
         GameConfig = gameConfig;
         TraitManager = new TraitManager();
         Load();
-        
+
+        // gets set in setsimulationtime on load
+        //SimulationTime = 1800; // 6h
+        //currentDay = Mathf.FloorToInt(SimulationTime / secondsPerDay);
+
         BusinessHours = GameConfig.BusinessHours;
 
         ScaledDeltaTime = Time.deltaTime * TimeScale;
@@ -149,7 +159,7 @@ public class Game
 
     private void UpdateWorkersLocation(Location location) // check traits, workaholics might not leave when closed
     {
-        foreach (var worker in Workers)
+        foreach (var worker in Workers.Where(w => w.Location != Location.HOSPITAL))
         {
             worker.SetWorkerLocation(location); // check traits, ie druggies might not come in at all and alcoholics might be late
         }
@@ -291,6 +301,7 @@ public class Game
     public void SetSimulationTime(float simulationTime)
     {
         SimulationTime = simulationTime;
+        currentDay = Mathf.FloorToInt(SimulationTime / secondsPerDay);
         _lastBusinessOpen = !IsWorkHours();
         UpdateBusinessStatus(); // calls workers update location based off of time
 
@@ -334,7 +345,6 @@ public class Game
     VisualElement PauseWindow;
     public void TogglePaused()
     {
-        
         Paused = !Paused;
         if (Paused)
         {
@@ -360,7 +370,7 @@ public class Game
     {
         foreach (var task in project.Tasks.ToList())
         {
-            foreach (var worker in task.Workers)
+            foreach (var worker in task.Workers.ToList())
             {
                 task.RemoveWorker(worker); // remove all workers
             }
@@ -407,6 +417,7 @@ public class Game
     private float repTimer = 0f;
     private float businessCheckTimer = 0f;
     private float businessCheckInterval = 1f; // Check every n second
+    private int currentDay = 0;
     public void UpdateGame()
     {
         // INPUT
@@ -422,6 +433,16 @@ public class Game
 
         // Update SimulationTime based on custom TimeScale
         SimulationTime += ScaledDeltaTime;  // Adjust time flow with TimeScale
+
+        
+        SimulationDay = Mathf.FloorToInt(SimulationTime / secondsPerDay);
+        //Debug.Log($"simulation time: {SimulationTime} Day: {SimulationDay} / {currentDay}");
+        if (SimulationDay > currentDay)
+        {
+            currentDay = SimulationDay;
+            OnNewDay?.Invoke(currentDay);
+            Debug.Log($"New day: {currentDay}");
+        }
 
         // Throttle business status checks to not update every frame
         businessCheckTimer += ScaledDeltaTime;

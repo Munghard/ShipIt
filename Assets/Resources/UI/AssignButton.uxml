@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/UI/general.uss?fileID=7433441132597879392&amp;guid=7987cbc3ec1823c4eb7427255f4d684c&amp;type=3#general" />
+    <engine:VisualElement name="container" style="flex-grow: 0; width: 128px; height: 128px; background-color: rgb(26, 26, 26); flex-shrink: 0; border-top-width: 8px; border-right-width: 8px; border-bottom-width: 8px; border-left-width: 8px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px;">
+        <engine:Button text="Button" name="btn" style="position: absolute; width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+        <engine:VisualElement name="portrait" picking-mode="Ignore" style="flex-grow: 1; background-image: resource(&apos;textures/Portraits2&apos;); position: absolute; width: 100%; height: 100%;" />
+        <engine:Label text="1x" name="lblResult" picking-mode="Ignore" style="position: absolute; width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-text-align: lower-center; font-size: 30px; color: rgb(255, 179, 0); -unity-font-style: bold;" />
+    </engine:VisualElement>
+</engine:UXML>
