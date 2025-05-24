@@ -25,7 +25,7 @@ namespace Assets.Scripts.Utils
     [Serializable]
     public class WorkerData
     {
-        public long Id;
+        public int Id;
         public string Name;
         public int PortraitIndex;
         public string Specialty;

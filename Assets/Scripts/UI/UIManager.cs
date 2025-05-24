@@ -125,7 +125,8 @@ public class UIManager : MonoBehaviour
     public void CreateMiniGame(Action<float?> onComplete)
     {
         TimingMiniGame timingMiniGame = new TimingMiniGame();
-        var minigame = timingMiniGame.Create(this, Game, 2, (result) =>
+
+        StartCoroutine(timingMiniGame.Run(Game,this, 2, (result) =>
         {
             Game.textPop.New($"Minigame result: {result:F1}", Vector2.zero, Color.cyan);
             timingMiniGame = null;
@@ -134,7 +135,7 @@ public class UIManager : MonoBehaviour
         {
             timingMiniGame = null;
             onComplete(null);
-        });
+        }));
     }
 
     void ClearContainers()
@@ -1112,8 +1113,17 @@ public class UIManager : MonoBehaviour
             var assignButton = containerElement.Q<Button>("btn");
             var lblResult = containerElement.Q<Label>("lblResult");
 
+            Tooltip.RegisterTooltip(Root, assignButton, () =>  new List<VisualElement>(){ new Label() { text = $"Stress multiplier:{worker.stressIncreaseBonusMultiplier:F1}" }});
+                
+            if (Game.MinigameTracker.HasPlayed(worker.Id, task.Id))
+            {
+                var res = Game.MinigameTracker.GetResult(worker.Id, task.Id);
+                lblResult.text = res.ToString("F1") + "x";
+                lblResult.style.color = res < 0.2f ? Color.green : res < 0.5f ? Color.yellow : Color.red;
 
-            portrait.style.backgroundImage = new StyleBackground(worker.Portrait);
+            }
+
+                portrait.style.backgroundImage = new StyleBackground(worker.Portrait);
             
 
             if(worker.Task == null)
@@ -1128,21 +1138,33 @@ public class UIManager : MonoBehaviour
                 }
                 assignButton.clicked += () =>
                 {
-                    CreateMiniGame((result) =>
+                    if(!Game.MinigameTracker.HasPlayed(worker.Id,task.Id))
                     {
-                        float multiplier = result ?? 1f;
-                        worker.SetStressIncreaseBonusMultiplier(multiplier);
-                        worker.onSressBonusMpChanged += (val) =>
-                        {
-                            lblResult.text = $"{val:F1}x";
-                        };
 
-                        if (result.HasValue)
+                        CreateMiniGame((result) =>
                         {
-                            task.AssignWorker(worker);
-                            Game.textPop.New($"Stress bonus multiplier {multiplier:F1}", Vector2.zero, Color.green);
-                        }
-                    });
+                        
+                            float multiplier = result ?? 1f;
+                            worker.SetStressIncreaseBonusMultiplier(multiplier);
+                            worker.onSressBonusMpChanged += (val) =>
+                            {
+                                var res = Game.MinigameTracker.GetResult(worker.Id, task.Id);
+                                lblResult.text = res.ToString("F1") + "x";
+                                lblResult.style.color = res < 0.2f ? Color.green : res < 0.5f ? Color.yellow : Color.red;
+                            };
+
+                            if (result.HasValue)
+                            {
+                                task.AssignWorker(worker);
+                                Game.textPop.New($"Stress bonus multiplier {multiplier:F1}", Vector2.zero, Color.green);
+                                Game.MinigameTracker.RecordResult(worker.Id,task.Id,multiplier);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        task.AssignWorker(worker);
+                    }
                 };
 
                 workersContainer.Add(containerElement);
@@ -1150,7 +1172,9 @@ public class UIManager : MonoBehaviour
             }
             else if(worker.Task == task)
             {
-                lblResult.text = $"{worker.stressIncreaseBonusMultiplier:F1}x";
+                var res = worker.stressIncreaseBonusMultiplier;
+                lblResult.text = res.ToString("F1") + "x";
+                lblResult.style.color = res < 0.2f ? Color.green : res < 0.5f ? Color.yellow : Color.red;
                 container.AddToClassList("un-assign-worker");
                 assignButton.clicked += () =>
                 {

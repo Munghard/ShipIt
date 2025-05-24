@@ -9,6 +9,7 @@ using Assets.Scripts.UI.Window;
 using System.Collections;
 using Assets.Scripts.Core.Enums;
 using Assets.Scripts.Core;
+using Assets.Scripts.Gameplay.MiniGames;
 public class Game
 {
     // TIME
@@ -34,7 +35,7 @@ public class Game
     public List<Buyable> buyables = new();
     public List<Buyable> acquiredBuyables = new();
 
-    
+    public MinigameTracker MinigameTracker;
 
     public int Money = 0;
 
@@ -89,7 +90,10 @@ public class Game
         Debug.Log("New game instance created");
         UIManager = uIManager;
         GameConfig = gameConfig;
+
         TraitManager = new TraitManager();
+        MinigameTracker = new MinigameTracker();
+
         Load();
 
         // gets set in setsimulationtime on load

@@ -8,7 +8,7 @@ using Assets.Scripts.UI.Window;
 
 public class Worker
 {
-    public long Id;
+    public int Id;
     public string Name;
     public float Stress;
     public float Health;
@@ -60,7 +60,7 @@ public class Worker
     public float baseHealSpeed = 1f;
 
     public float stressIncreaseBonusMultiplier = 1f;
-    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, long? id = null,float? happiness = null, Location? location = null,List<Trait> traits = null)
+    public Worker(string name,Sprite portrait, Specialty specialty, float skill, int level, Project project, Game game,float? health = null,float? stress = null, float? xp = null, int? id = null,float? happiness = null, Location? location = null,List<Trait> traits = null)
     {
         Id = id ?? GenerateId();
         Name = name;
@@ -106,9 +106,9 @@ public class Worker
         }
     }
 
-    private long GenerateId()
+    private int GenerateId()
     {
-        return long.Parse(System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() + Random.Range(0, 999).ToString());
+        return Random.Range(0, int.MaxValue);
     }
     public void SetWorkerLocation(Location location)
     {
